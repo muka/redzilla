@@ -1,0 +1,23 @@
+{
+  "name": "nude-red",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "node-red",
+    "multiuser",
+    "iot"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.11.2",
+    "node-red": "^0.10.1",
+    "ncp": "*",
+    "MD5": "*",
+    "bluebird": "*"
+  }
+}
