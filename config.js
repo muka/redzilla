@@ -6,6 +6,7 @@ module.exports.config = {
         ip: process.env.HOST || 'localhost'
     },
 
+    instancesDir: "./instances",
     basePort: 3002
 };
 

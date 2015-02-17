@@ -1,5 +1,13 @@
 
-require('./lib/server').app().then(function(app) {
+var serverManager = require('./lib/serverManager');
+
+serverManager.app().then(function(app) {
+
+    console.warn("setup default");
+
+
+    console.log(app.routes);
+
 
     app.get('/', function (req, res) {
 
@@ -11,29 +19,6 @@ require('./lib/server').app().then(function(app) {
         content.push("</ul>");
 
         res.send(content.join(''));
-    });
-
-    app.get('/:name', function (req, res) {
-
-        var name = req.params.name;
-
-        console.log("Requested " + name);
-
-        var process = require('./lib/processManager');
-        process.load(name).then(function(instance) {
-
-            setTimeout(function() {
-
-                var dest = "http://" + app.server.address().address + ":" + instance.port + "/" + instance.path;
-                console.log("Redirecting to ", dest);
-
-                res.setHeader('Location', dest);
-                res.sendStatus(301);
-
-            }, 1500);
-
-        });
-
     });
 
 });
