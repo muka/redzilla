@@ -3,12 +3,6 @@ var serverManager = require('./lib/serverManager');
 
 serverManager.app().then(function(app) {
 
-    console.warn("setup default");
-
-
-    console.log(app.routes);
-
-
     app.get('/', function (req, res) {
 
         var content = [];
@@ -22,4 +16,3 @@ serverManager.app().then(function(app) {
     });
 
 });
-
