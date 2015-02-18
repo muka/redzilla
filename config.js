@@ -6,7 +6,22 @@ module.exports.config = {
         ip: process.env.HOST || 'localhost'
     },
 
-    instancesDir: "./instances",
+    admin: {
+        user: 'admin',
+        pass: 'admin'
+    },
+
+    debug: true,
+    
+    hash: 'change to a very secret hash',
+
+    auth: 'basic',
+    storage: 'file',
+
+    userPathPrefix: "/red",
+    adminPathPrefix: "/admin",
+
+    instancesDir: "/tmp/redzilla-instances",
     basePort: 3002
 };
 

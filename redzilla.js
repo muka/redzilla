@@ -1,5 +1,5 @@
 
-module.exports.start = function() {
+module.exports.start = function(onReady) {
 
     var serverManager = require('./lib/serverManager'),
         processManager = require('./lib/processManager'),
@@ -9,17 +9,7 @@ module.exports.start = function() {
 
     serverManager.app().then(function(app) {
 
-        app.get('/', function (req, res) {
-
-            var content = [];
-
-            content.push("<p>Gimme a red</p><ul>");
-            content.push("<li><a href='/Topolino' target='_blank'>Topolino</a></li>");
-            content.push("<li><a href='/Pluto' target='_blank'>Pluto</a></li>");
-            content.push("</ul>");
-
-            res.send(content.join(''));
-        });
+        onReady && onReady(app);
 
         return Promise.resolve();
     })
