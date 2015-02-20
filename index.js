@@ -1,34 +1,52 @@
 
-require('./redzilla').start(function(app) {
+var lib = module.exports;
 
-    var config = require('./lib/config');
+lib.start = function(config, onReady) {
 
-    // from http://listofrandomwords.com/index.cfm?blist
-    var words = ["nonselective","unmarkable","fossilizing","diathermy","nonenclosure","lechuguilla","reconditeness","hematoblast","aviated","kissableness","vojvodina","ejaculate","cannulation","leeuwarden","puberulous","anticlockwise","nonendorsement","collusively","preundertake","tracheitis","dependently","camelopard","uncircular","nondivergence","pyrotoxin","procivilian","inspiriter","cancerously","nonerratic","substantially","euryphagous","totipotent","rehoboam","bahamian","huntingdonshire","endophasia","dietician","marcantonio","nitrogenous","mendaciously","opportuneness","planography","nonbelieving","tyrannical","containerise","exoteric","conjurator","hammurapi","noneloquence","superintense","formulistic","phosphatising","dysentery","nazimova","subzonary","reharmonize","eluvium","nonreflective","undesiring","verticity","theoretics","telepathize","stipulated","dependency","masquerading","adultery","desquamating","essentialize","manageress","lumbosacral","bodhisattva","unmonogrammed","herbivorous","liquidity","preoutlining","postscutellum","elongating","jovianly","absinthism","ischiadic","brutality","overexpress","annotator","unwakening","dichogamous","nebulously","overcolor","spasmodical","deprecator","nutritiveness","precontemplate","uncheckmated","undemanding","federative","horoscopy","melaleuca","hypocorism","hydrocarbon","reassuming","bacterizing"]
-
-    var len = 15, i = 0;
-    var rndInstances = [];
-    while(rndInstances.length < len) {
-        var el;
-        if(el = words[Math.floor(Math.random() * words.length)]) {
-            rndInstances.push(el);
-        }
+    if(typeof config === 'function') {
+        onReady = config;
+        config = {};
     }
 
-    app.get('/', function (req, res) {
+    var serverManager = require('./lib/serverManager'),
+        processManager = require('./lib/processManager'),
+        logger = require('./lib/logger'),
+        Promise = require('bluebird')
+    ;
 
-        var content = [];
+    serverManager.app().then(function(app) {
 
-        content.push("<p>Gimme a red</p><ul>");
+        onReady && onReady(app);
 
-        rndInstances.forEach(function(word) {
-            content.push("<li><a href='"+ config.get('adminPathPrefix', '/admin') +"/create/"+ word +"' target='_blank'>"+ word +"</a></li>");
+        return Promise.resolve();
+    })
+    .then(function() {
+
+        logger.info("Reloading instances");
+
+        return processManager.reload().then(function() {
+            logger.info("Done");
+            return Promise.resolve();
         });
-
-        content.push("</ul>");
-
-        res.send(content.join(''));
+    })
+    .catch(function(e) {
+        logger.error("An error occured during setup");
+        logger.error(e);
+    })
+    .finally(function() {
+        logger.info("Startup completed");
     });
 
+};
 
-});
+lib.stop = function() {
+    process.kill('SIGINT');
+};
+
+lib.addAuth = function(type, callback) {
+    require('./lib/auth').addType(type, callback);
+};
+
+lib.addStorage = function(type, callback) {
+    require('./lib/storage').addType(type, callback);
+};
