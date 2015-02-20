@@ -11,7 +11,13 @@ Add to your deps
 
 `npm i muka/redzilla --save`
 
-Setup an instance or see `example.js`
+
+Run an example
+
+`node node_modules/redzilla/example2.js`
+
+
+or setup an instance from the api
 
 ```
 
@@ -44,6 +50,15 @@ redzilla.start(config, function(app) {
 });
 
 ```
+
+TODO
+---
+
+ - Provide a proper API for instances management
+ - Add other auth types (eg oauth2) and storage systems (eg redis)
+ - Ensure everything works
+
+Fill an issue to suggest more
 
 License
 ---
