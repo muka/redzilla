@@ -1,5 +1,12 @@
 
-module.exports.start = function(onReady) {
+var lib = module.exports;
+
+lib.start = function(config, onReady) {
+
+    if(typeof config === 'function') {
+        onReady = config;
+        config = {};
+    }
 
     var serverManager = require('./lib/serverManager'),
         processManager = require('./lib/processManager'),
@@ -30,4 +37,12 @@ module.exports.start = function(onReady) {
         logger.info("Startup completed");
     });
 
+};
+
+lib.addAuth = function(type, callback) {
+    require('./lib/auth').addType(type, callback);
+};
+
+lib.addStorage = function(type, callback) {
+    require('./lib/storage').addType(type, callback);
 };
