@@ -1,21 +1,5 @@
-redzilla
-===
 
-A node-red instances generator for your multi-user needs
-
-
-Usage
----
-
-Add to your deps
-
-`npm i muka/redzilla --save`
-
-Setup an instance or see `example.js`
-
-```
-
-var redzilla = require('redzilla');
+var redzilla = require('./index');
 
 // see config.json.dist
 var config = {
@@ -29,7 +13,7 @@ redzilla.start(config, function(app) {
 
     // app is an express app
 
-    var i = 0;
+    var i = 1;
     while(i < 10) {
 
         console.log("Get a node-red at http://%s:%s/admin/create/%s",
@@ -42,10 +26,3 @@ redzilla.start(config, function(app) {
     }
 
 });
-
-```
-
-License
----
-
-MIT, see LICENSE for details
