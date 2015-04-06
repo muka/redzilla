@@ -19,6 +19,17 @@
     "userPathPrefix": "/red",
     "adminPathPrefix": "/admin",
 
-    "instancesDir": "./instances",
-    "basePort": 3002
+    flowsDir: '/tmp',
+
+    localhost: {
+        "instancesDir": "./instances",
+        "basePort": 3002
+    },
+
+    docker: {
+        socketPath: '/var/run/docker.sock',
+        image: 'muka/redzilla',
+        volumes: {}
+    }
+
 }
