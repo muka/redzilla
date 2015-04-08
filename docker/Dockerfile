@@ -15,6 +15,3 @@ RUN apt-get install nodejs -yq
 
 RUN apt-get autoremove -yqq
 RUN apt-get autoclean -qq
-
-
-

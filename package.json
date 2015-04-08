@@ -22,8 +22,8 @@
     "http-proxy": "^1.8.1",
     "ncp": "*",
     "node-red": "^0.10.1",
-    "underscore": "^1.8.3",
     "winston": "^0.9.0",
-    "dockerode": "~2.1.1"
+    "dockerode": "~2.1.1",
+    "lodash": "~3.6.0"
   }
 }
