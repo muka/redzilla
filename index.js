@@ -62,3 +62,20 @@ lib.addAuth = function(type, callback) {
 lib.addStorage = function(type, callback) {
     require('./lib/storage').addType(type, callback);
 };
+
+lib.getProcessManager = function() {
+    return require('./lib/processManager');
+};
+
+lib.getStorageManager = function() {
+    return require('./lib/storage');
+};
+
+lib.getAuthManager = function() {
+    return require('./lib/auth');
+};
+
+lib.getLogger = function() {
+    return require('./lib/logger');
+};
+

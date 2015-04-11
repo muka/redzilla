@@ -3,7 +3,7 @@ FROM ubuntu:trusty
 
 MAINTAINER Luca Capra <luca.capra@gmail.com>
 
-#RUN apt-get update -qq
+RUN apt-get update -qq
 #RUN apt-get upgrade -yq
 
 RUN apt-get install -yqq software-properties-common python-software-properties libicu-dev make g++
@@ -23,9 +23,6 @@ WORKDIR /node-red
 
 RUN npm i
 
-VOLUME [ "/user", "/nodes" ]
-
-RUN ln -s /user/settings.js ./
-RUN ln -s /user/flow.js ./
+#VOLUME [ "/user", "/nodes", "/node-red/flow.json", "/node-red/settings.js" ]
 
 EXPOSE 1880
