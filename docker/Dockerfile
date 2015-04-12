@@ -23,6 +23,6 @@ WORKDIR /node-red
 
 RUN npm i
 
-#VOLUME [ "/user", "/nodes", "/node-red/flow.json", "/node-red/settings.js" ]
+VOLUME [ "/user" "/nodes" ]
 
 EXPOSE 1880
