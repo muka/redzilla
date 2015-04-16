@@ -1,6 +1,8 @@
 
 var lib = module.exports;
 
+lib.Promise = require('bluebird');
+
 lib.start = function(config, onReady) {
 
     if(typeof config === 'function') {
@@ -14,12 +16,12 @@ lib.start = function(config, onReady) {
         Promise = require('bluebird'),
         _config = require('./lib/config')
     ;
-    
+
     if(typeof config === 'object') {
         _config.set(config);
     }
 
-    serverManager.app().then(function(app) {
+    return serverManager.app().then(function(app) {
 
         onReady && onReady(app);
 
@@ -63,12 +65,20 @@ lib.addStorage = function(type, callback) {
     require('./lib/storage').addType(type, callback);
 };
 
+lib.getServer = function() {
+    return require('./lib/serverManager');
+};
+
 lib.getProcessManager = function() {
     return require('./lib/processManager');
 };
 
 lib.getStorageManager = function() {
     return require('./lib/storage');
+};
+
+lib.getConfig = function() {
+    return require('./lib/config');
 };
 
 lib.getAuthManager = function() {
