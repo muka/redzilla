@@ -89,3 +89,7 @@ lib.getLogger = function() {
     return require('./lib/logger');
 };
 
+lib.setLogger = function(logger) {
+    require('./lib/logger').setLogger(logger);
+};
+
