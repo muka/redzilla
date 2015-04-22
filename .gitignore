@@ -3,3 +3,4 @@ nbproject
 instances/*
 custom-nodes/*
 logs/*
+docker/node-red
