@@ -54,10 +54,6 @@ redzilla.start(config, function(app) {
 TODO
 ---
 
- - Provide a proper API for instances management
- - Add other auth types (eg oauth2) and storage systems (eg redis)
- - Ensure everything works
-
 Fill an issue to suggest more
 
 License
