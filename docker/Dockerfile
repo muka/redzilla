@@ -18,6 +18,7 @@ RUN apt-get autoremove -yqq
 RUN apt-get autoclean -qq
 
 ADD ./node-red /node-red
+ADD ./hosts /etc/hosts
 
 WORKDIR /node-red
 
