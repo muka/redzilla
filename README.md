@@ -3,58 +3,69 @@ redzilla
 
 A node-red instances generator for your multi-user needs
 
+Installation
+---
+
+```
+git clone https://github.com/muka/redzilla.git
+cd redzilla
+npm i
+```
+
+Create a docker image
+
+`sudo ./build-docker.sh`
+
 
 Usage
 ---
 
-Add to your deps
-
-`npm i muka/redzilla --save`
-
-
-Run an example
-
-`node node_modules/redzilla/example2.js`
-
-
-or setup an instance from the api
+A sample configuration
 
 ```
+{
+    // used to redirect the users
+    "baseUrl": "http://red.example.com",
+    "debug": true,
 
-var redzilla = require('redzilla');
+    // see lib/auth/basic.js
+    "auth": "basic",
 
-// see config.json.dist
-var config = {
-    host: {
-        ip: 'localhost',
-        port: 8080
+    // see lib/storage/file.js
+    "storage": "file",
+
+    // see lib/process/docker.js
+    "process": "docker",
+
+    // location for users files eg. flow.json
+    "instancesDir": "/opt/redzilla/data",
+
+    // additional nodes to be added in the palette
+    "nodesDir": "/opt/redzilla/nodes",
+
+    "docker": {
+        "image": "muka/redzilla:latest"
+    },
+
+    // bind to that host
+    "host": {
+        "ip": "127.0.0.1",
+        "port": 80
     }
-};
-
-redzilla.start(config, function(app) {
-
-    // app is an express app
-
-    var i = 0;
-    while(i < 10) {
-
-        console.log("Get a node-red at http://%s:%s/admin/create/%s",
-                        app.server.address().address,
-                        app.server.address().port,
-                        100 * i
-                    );
-        i++;
-
-    }
-
-});
-
+}
 ```
+
+There is an example of api usage in `redzilla/examples`
+
 
 TODO
 ---
 
-Fill an issue to suggest more
+- unit tests
+- documentation
+- more storage types (mongodb)
+- more auth types (oauth2)
+- clustering
 
 License
 ---
