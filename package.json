@@ -1,7 +1,7 @@
 {
   "name": "redzilla",
-  "version": "1.0.0",
-  "description": "",
+  "version": "0.1.2",
+  "description": "a node-red instances generator",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -11,7 +11,7 @@
     "multiuser",
     "iot"
   ],
-  "author": "",
+  "author": "l <luca.capra@gmail.com>",
   "license": "MIT",
   "dependencies": {
     "basic-auth": "^1.0.0",
