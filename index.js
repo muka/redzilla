@@ -12,27 +12,22 @@ lib.start = function(config, onReady) {
         config = {}
     }
 
-    var serverManager = require('./lib/serverManager'),
-        processManager = require('./lib/processManager'),
-        logger = require('./lib/logger'),
-        Promise = require('bluebird'),
-        _config = require('./lib/config')
-    ;
+    var serverManager = require('./lib/serverManager')
+        ,processManager = require('./lib/processManager')
+        ,logger = require('./lib/logger')
+        ,_config = require('./lib/config')
+
 
     if(typeof config === 'object') {
         _config.set(config)
     }
 
-    return serverManager.app().then(function(app) {
-
+    return serverManager.start().then(function(app) {
         onReady && onReady(app)
-
-        return Promise.resolve()
+        return Promise.resolve(lib)
     })
     .then(function() {
-
         logger.info("Reloading instances")
-
         return processManager.reload().then(function() {
             logger.info("Done")
             return Promise.resolve()
@@ -41,6 +36,7 @@ lib.start = function(config, onReady) {
     .catch(function(e) {
         logger.error("An error occured during setup")
         logger.error(e)
+        return Promise.reject(e)
     })
     .finally(function() {
         logger.info("Startup completed")
@@ -48,7 +44,22 @@ lib.start = function(config, onReady) {
 }
 
 lib.stop = function() {
-    process.kill('SIGINT')
+
+    var serverManager = require('./lib/serverManager')
+        ,processManager = require('./lib/processManager')
+        ,logger = require('./lib/logger')
+
+    logger.info("Stopping..")
+    return serverManager
+        .stop()
+        .then(function() {
+            logger.debug("Stopped server manager")
+            return processManager.stop()
+                    .then(function() {
+                        logger.debug("Stopped process manager")
+                        return Promise.resolve()
+                    })
+        })
 }
 
 /**
@@ -96,6 +107,7 @@ lib.setLogger = function(logger) {
 }
 
 
+lib.instances = {}
 /**
  * Return an object rapresenting a node-red instance
  *
@@ -103,23 +115,28 @@ lib.setLogger = function(logger) {
  * @throws Error If instance has not been found
  * @return RedInstance instance of node-red
  */
-lib.instance.get = function(uid) {
+lib.instances.get = function(name) {
 
     var pm = lib.getProcessManager()
 
-    if(!pm.exists(uid)) {
+    if(!pm.exists(name)) {
         throw new Error("Instance not found")
     }
 
-    return new RedInstance(uid)
+    return new pm.RedInstance(name)
 }
 
-lib.instance.add = function(name, config) {
+lib.instances.create = lib.instances.add = function(name, config) {
     return lib  .getProcessManager()
                 .create(name, config)
                 .then(function(instanceConfig) {
-                    return Promise.resolve( lib.instances.get(instanceConfig.uid) )
+                    return Promise.resolve( lib.instances.get(instanceConfig.name) )
                 })
+}
+
+lib.instances.destroy = function(name, config) {
+    return lib  .getProcessManager()
+                .destroy(name)
 }
 
 lib.instances.list = function() {
@@ -127,7 +144,7 @@ lib.instances.list = function() {
     var pm = lib.getProcessManager()
     var instances = pm.getInstances()
 
-    return Object.keys(instances).map(function(uid) {
-        return new pm.RedInstance(uid)
+    return Object.keys(instances).map(function(name) {
+        return new pm.RedInstance(name)
     })
 }

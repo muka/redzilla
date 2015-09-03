@@ -25,7 +25,7 @@
     "instancesDir": "./instances",
     "nodesDir": "./custom-nodes",
 
-    "paletteCategories": ["subflows", "input", "output", "function", "social", "storage", "analysis", "advanced"],
+    "paletteCategories": [ "subflows", "input", "output", "function", "social", "storage", "analysis", "advanced" ],
 
     "localhost": {
         "instancesDir": "./instances",
