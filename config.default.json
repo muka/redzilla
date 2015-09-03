@@ -1,0 +1,45 @@
+{
+
+    "baseUrl": null,
+    "host": {
+        "port": "3000",
+        "ip": "localhost"
+    },
+
+    "debug": true,
+    "createOnRequest": true,
+    "hash": "change to a very secret hash",
+
+    "auth": "basic",
+    "admin": {
+        "user": "admin",
+        "pass": "admin"
+    },
+
+    "storage": "file",
+    "cacheFileName": "cache.json",
+
+    "userPathPrefix": "/red",
+    "adminPathPrefix": "/admin",
+
+    "instancesDir": "./instances",
+    "nodesDir": "./custom-nodes",
+
+    "paletteCategories": ["subflows", "input", "output", "function", "social", "storage", "analysis", "advanced"],
+
+    "localhost": {
+        "instancesDir": "./instances",
+        "basePort": 3002
+    },
+
+    "docker": {
+        "socketPath": "/var/run/docker.sock",
+        "image": "muka/redzilla",
+        "volumes": {
+            "nodesDir": "/nodes",
+            "userDir": "/user",
+            "settingsFile": "/node-red/settings.js"
+        }
+    }
+
+}
