@@ -17,6 +17,8 @@ describe('process.localhost', function () {
         })
         it('should start a new instance', function (done) {
 
+            this.timeout(15000)
+
             var instance = redzilla.instances.get("test")
             return instance.start()
                 .then(function() {
@@ -45,15 +47,15 @@ describe('process.localhost', function () {
                 .catch(done)
 
         })
-        // it('should remove an instance', function (done) {
-        //
-        //     var instance = redzilla.instances.get("test")
-        //     return instance.remove()
-        //         .then(function() {
-        //             done()
-        //         })
-        //         .catch(done)
-        //
-        // })
+        it('should remove an instance', function (done) {
+
+            var instance = redzilla.instances.get("test")
+            return instance.remove()
+                .then(function() {
+                    done()
+                })
+                .catch(done)
+
+        })
     })
 })

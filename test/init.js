@@ -11,9 +11,9 @@ before(function(done) {
 
 after(function (done) {
     redzilla.stop()
-        // .then(function() {
-        //     return require('./lib/util').cleanup()
-        // })
+        .then(function() {
+            return require('./lib/util').cleanup()
+        })
         .then(done)
         .catch(done)
 })

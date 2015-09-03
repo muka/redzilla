@@ -16,6 +16,7 @@
         "pass": "admin"
     },
 
+    "basePort": 3002,
     "storage": "file",
     "cacheFileName": "cache.json",
 
@@ -28,8 +29,8 @@
     "paletteCategories": [ "subflows", "input", "output", "function", "social", "storage", "analysis", "advanced" ],
 
     "localhost": {
-        "instancesDir": "./instances",
-        "basePort": 3002
+        "node_src": "./node-red",
+        "instancesDir": "./instances"
     },
 
     "docker": {
