@@ -43,34 +43,77 @@ A sample configuration
 
 ```javascript
 var config = {
-    // used to redirect the users
-    "baseUrl": "http://red.example.com",
-    "debug": true,
 
-    // see lib/auth/basic.js
-    "auth": "basic",
-
-    // see lib/storage/file.js
-    "storage": "file",
-
-    // see lib/process/docker.js
-    "process": "docker",
-
-    // location for users files eg. flow.json
-    "instancesDir": "/opt/redzilla/data",
-
-    // additional nodes to be added in the palette
-    "nodesDir": "/opt/redzilla/nodes",
-
-    "docker": {
-        "image": "muka/redzilla:latest"
-    },
-
-    // bind to that host
+    // external url where users are redirected
+    "baseUrl": null,
+    
+    // host to bind that will act as a proxy to access instances
     "host": {
-        "ip": "127.0.0.1",
-        "port": 80
+        "port": "3000",
+        "ip": "localhost"
+    },
+    
+    // show debug informations
+    "debug": true,
+    
+    // create an instance when a new one is requested via HTTP but is not available already
+    "createOnRequest": true,
+    
+    // an hash used to create unique keys, do not change once set
+    "hash": "change to a very secret hash",
+    
+    // auth type, see lib/auth/
+    "auth": "basic",
+    
+    // admin auth, only for basic auth
+    "admin": {
+        "user": "admin",
+        "pass": "admin"
+    },
+     
+    // base port to bind, each instance will take basePort+1
+    "basePort": 3002,
+    
+    // storage type, see lib/storage/
+    "storage": "file",
+    
+    // storage name, may be any string
+    "cacheFileName": "cache.json",
+    
+    // base path where node-red instances will be reachable for users
+    // eg http://127.0.0.1:1234/red/<uid>
+    "userPathPrefix": "/red",
+    
+    // base path for admin HTTP API 
+    // eg http://127.0.0.1:1234/admin/<uid>/restart
+    "adminPathPrefix": "/admin",
+    
+    // directory where user data is stored
+    "instancesDir": "./instances",
+    
+    // custom nodes to be shown in node-red palette
+    "nodesDir": "./custom-nodes",
+    
+    // organize palette to show
+    "paletteCategories": [ "subflows", "input", "output", "function", "social", "storage", "analysis", "advanced" ],
+    
+    // localhost process management will spawn a new process for each user
+    "localhost": {
+        "node_src": "./node-red",
+        "instancesDir": "./instances"
+    },
+    
+    // docker process management will launch new docker instances for each user
+    "docker": {
+        "socketPath": "/var/run/docker.sock",
+        "image": "muka/redzilla",
+        "volumes": {
+            "nodesDir": "/nodes",
+            "userDir": "/user",
+            "settingsFile": "/node-red/settings.js"
+        }
     }
+
 }
 ```
 
