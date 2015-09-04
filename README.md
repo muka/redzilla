@@ -4,12 +4,16 @@ A node-red as-a-service instance launcher supporting custom authentication and i
 
 ## Test with vagrant
 
+Vagant image is used for development mainly but may be good to try the appliance either
 
-Vagant image is used for development purposes but is good to use the appliance either
+```
+vagrant up
+vagrant ssh
+cd /vagrant
+bin/redzilla run -c examples/vagrant.config.json
+```
 
-`vagrant up`
-
-Visit then `http:192.168.18.83:3000/red/hello-world` to start using an instance of node-red. 
+Visit then `http://192.168.18.83:3000/red/hello-world` to start using an instance of node-red.
 
 Substitute `hello-world` with your name to get your very own.
 
@@ -29,8 +33,14 @@ npm i
 cd node-red
 npm i
 # sudo npm i -g grunt-cli
-grunt build 
+grunt build
 ```
+
+## Examples
+
+Run `node examples/example.js` and visit `http://127.0.0.1:3000`
+
+The example creates a list of links that points to new instances
 
 ### Create a docker image
 
@@ -38,84 +48,7 @@ grunt build
 
 ## Usage
 
-
-A sample configuration
-
-```javascript
-var config = {
-
-    // external url where users are redirected
-    "baseUrl": null,
-    
-    // host to bind that will act as a proxy to access instances
-    "host": {
-        "port": "3000",
-        "ip": "localhost"
-    },
-    
-    // show debug informations
-    "debug": true,
-    
-    // create an instance when a new one is requested via HTTP but is not available already
-    "createOnRequest": true,
-    
-    // an hash used to create unique keys, do not change once set
-    "hash": "change to a very secret hash",
-    
-    // auth type, see lib/auth/
-    "auth": "basic",
-    
-    // admin auth, only for basic auth
-    "admin": {
-        "user": "admin",
-        "pass": "admin"
-    },
-     
-    // base port to bind, each instance will take basePort+1
-    "basePort": 3002,
-    
-    // storage type, see lib/storage/
-    "storage": "file",
-    
-    // storage name, may be any string
-    "cacheFileName": "cache.json",
-    
-    // base path where node-red instances will be reachable for users
-    // eg http://127.0.0.1:1234/red/<uid>
-    "userPathPrefix": "/red",
-    
-    // base path for admin HTTP API 
-    // eg http://127.0.0.1:1234/admin/<uid>/restart
-    "adminPathPrefix": "/admin",
-    
-    // directory where user data is stored
-    "instancesDir": "./instances",
-    
-    // custom nodes to be shown in node-red palette
-    "nodesDir": "./custom-nodes",
-    
-    // organize palette to show
-    "paletteCategories": [ "subflows", "input", "output", "function", "social", "storage", "analysis", "advanced" ],
-    
-    // localhost process management will spawn a new process for each user
-    "localhost": {
-        "node_src": "./node-red",
-        "instancesDir": "./instances"
-    },
-    
-    // docker process management will launch new docker instances for each user
-    "docker": {
-        "socketPath": "/var/run/docker.sock",
-        "image": "muka/redzilla",
-        "volumes": {
-            "nodesDir": "/nodes",
-            "userDir": "/user",
-            "settingsFile": "/node-red/settings.js"
-        }
-    }
-
-}
-```
+A sample configuration can be found in `config.default.json`
 
 From the api
 
@@ -124,24 +57,31 @@ From the api
 var redzilla = require('redzilla')
 redzilla.start(config).then(function() {
   console.log("Up and running")
+  return redzilla.getServerManager().app()
+})
+.then(function(app) {
+  // `app` is an express instance
 })
 ```
 
-There is an example of api usage in `redzilla/examples` and tests where the api is used extensively in `test/`
+There is an example of api usage in `redzilla/examples` and tests  in `test/` folder where the api is used extensively
 
 ## Tests
 
 Run `mocha test/*` to run unit tests
-
 
 ## TODO
 
 - ~~unit tests~~
 - documentation
 - more storage types (mongodb)
-- more auth types (oauth2)
+- more auth types (oauth2 via passportjs)
 - clustering
 
 ## License
 
-MIT, see LICENSE for details
+The MIT License
+
+Copyright (c) 2015 luca capra <luca.capra@gmail.com>
+
+See LICENSE for further informations
