@@ -1,0 +1,22 @@
+#!/usr/bin/env node
+
+var redzilla = require('../index')
+
+var config = require('../config.default.json')
+
+redzilla.start(config)
+
+var _closing = 0
+process.on('SIGINT', function() {
+
+    _closing++
+    if(_closing === 1) {
+        redzilla.stop()
+    }
+    else {
+        if(_closing > 5) {
+            process.exit(1)
+        }
+    }
+
+})

@@ -2,11 +2,13 @@
 
     "baseUrl": null,
     "host": {
-        "port": "3000",
-        "ip": "localhost"
+        "port": 3000,
+        "ip": "127.0.0.1"
     },
 
     "debug": true,
+    "consoleLogLevel": "silly",
+
     "createOnRequest": true,
     "hash": "change to a very secret hash",
 
@@ -30,7 +32,8 @@
 
     "localhost": {
         "node_src": "./node-red",
-        "instancesDir": "./instances"
+        "instancesDir": "./instances",
+        "bindHost": "127.0.1.1"
     },
 
     "docker": {

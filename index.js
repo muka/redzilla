@@ -9,7 +9,7 @@ lib.start = function(config, onReady) {
 
     if(typeof config === 'function') {
         onReady = config;
-        config = {}
+        config = null
     }
 
     var serverManager = require('./lib/serverManager')
@@ -29,17 +29,14 @@ lib.start = function(config, onReady) {
     .then(function() {
         logger.info("Reloading instances")
         return processManager.reload().then(function() {
-            logger.info("Done")
+            logger.debug("Startup completed")
             return Promise.resolve()
         })
     })
     .catch(function(e) {
         logger.error("An error occured during setup")
         logger.error(e)
-        return Promise.reject(e)
-    })
-    .finally(function() {
-        logger.info("Startup completed")
+        return lib.stop()
     })
 }
 
@@ -54,7 +51,7 @@ lib.stop = function() {
         .stop()
         .then(function() {
             logger.debug("Stopped server manager")
-            return processManager.stop()
+            return processManager.stopAll()
                     .then(function() {
                         logger.debug("Stopped process manager")
                         return Promise.resolve()
@@ -137,6 +134,16 @@ lib.instances.create = lib.instances.add = function(name, config) {
 lib.instances.destroy = function(name, config) {
     return lib  .getProcessManager()
                 .destroy(name)
+}
+
+lib.instances.start = function(name, config) {
+    var pm = lib  .getProcessManager()
+    return pm.load(name).then(pm.start)
+}
+
+lib.instances.stop = function(name, config) {
+    return lib  .getProcessManager()
+                .stop(name)
 }
 
 lib.instances.list = function() {
