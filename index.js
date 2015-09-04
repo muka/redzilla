@@ -47,15 +47,14 @@ lib.stop = function() {
         ,logger = require('./lib/logger')
 
     logger.info("Stopping..")
-    return serverManager
-        .stop()
+    return processManager.stopAll()
+        .then(function() {
+            logger.debug("Stopped process manager")
+            return serverManager.stop()
+        })
         .then(function() {
             logger.debug("Stopped server manager")
-            return processManager.stopAll()
-                    .then(function() {
-                        logger.debug("Stopped process manager")
-                        return Promise.resolve()
-                    })
+            return Promise.resolve()
         })
 }
 
