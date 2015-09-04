@@ -29,4 +29,4 @@ sudo sh ./build-docker.sh
 
 sudo ln -s $basedir/bin/redzilla /usr/local/bin/
 
-sudo redzilla &
+sudo redzilla -c examples/vagrant.config.json &
