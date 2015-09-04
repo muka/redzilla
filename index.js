@@ -74,7 +74,7 @@ lib.addStorage = function(type, callback) {
     require('./lib/storage').addType(type, callback)
 }
 
-lib.getServer = function() {
+lib.getServerManager = function() {
     return require('./lib/serverManager')
 }
 
