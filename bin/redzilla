@@ -1,8 +1,27 @@
 #!/usr/bin/env node
 
 var redzilla = require('../index')
+var program = require('commander');
 
-var config = require('../config.default.json')
+program
+ .version('0.0.1')
+ .option('-c, --config [src]', 'Load the specified configuration []', '')
+ .parse(process.argv);
+
+var config = {}
+
+if(program.config) {
+    try {
+        var p = require('path')
+        var fullpath = p.resolve(program.config)
+        config = require(fullpath)
+    }
+    catch(e) {
+        console.warn(e.message)
+        console.log("An error occured while opening the config file")
+        process.exit(1)
+    }
+}
 
 redzilla.start(config)
 
@@ -14,7 +33,7 @@ process.on('SIGINT', function() {
         redzilla.stop()
     }
     else {
-        if(_closing > 5) {
+        if(_closing > 3) {
             process.exit(1)
         }
     }
