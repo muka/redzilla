@@ -19,6 +19,7 @@
     },
 
     "basePort": 3002,
+    "process": "localhost",
     "storage": "file",
     "cacheFileName": "cache.json",
 
@@ -33,6 +34,7 @@
     "localhost": {
         "node_src": "./node-red",
         "instancesDir": "./instances",
+        "nodesDir": "./custom-nodes",
         "bindHost": "127.0.1.1"
     },
 

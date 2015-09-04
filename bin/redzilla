@@ -3,39 +3,50 @@
 var redzilla = require('../index')
 var program = require('commander');
 
-program
- .version('0.0.1')
- .option('-c, --config [src]', 'Load the specified configuration []', '')
- .parse(process.argv);
+var run = function() {
 
-var config = {}
+  var config = {}
 
-if(program.config) {
-    try {
-        var p = require('path')
-        var fullpath = p.resolve(program.config)
-        config = require(fullpath)
-    }
-    catch(e) {
-        console.warn(e.message)
-        console.log("An error occured while opening the config file")
-        process.exit(1)
-    }
+  if(program.config) {
+      try {
+          var p = require('path')
+          var fullpath = p.resolve(program.config)
+          config = require(fullpath)
+      }
+      catch(e) {
+          console.warn(e.message)
+          console.log("An error occured while opening the config file")
+          process.exit(1)
+      }
+  }
+
+  redzilla.start(config)
+
+  var _closing = 0
+  process.on('SIGINT', function() {
+
+      _closing++
+      if(_closing === 1) {
+          redzilla.stop()
+      }
+      else {
+          if(_closing > 3) {
+              process.exit(1)
+          }
+      }
+
+  })
 }
 
-redzilla.start(config)
 
-var _closing = 0
-process.on('SIGINT', function() {
-
-    _closing++
-    if(_closing === 1) {
-        redzilla.stop()
+program
+  .version(require('../package.json').version || 'master')
+  .option('-c, --config [src]', 'Load the specified configuration []', '')
+  .arguments("<cmd>")
+  .action(function(cmd) {
+    switch (cmd) {
+      case "run": return run()
+      default:    return program.outputHelp()
     }
-    else {
-        if(_closing > 3) {
-            process.exit(1)
-        }
-    }
-
-})
+  })
+  .parse(process.argv)
