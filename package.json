@@ -22,10 +22,11 @@
     "dockerode": "~2.1.1",
     "express": "^4.13.3",
     "fs-extra": "*",
-    "http-proxy": "^1.8.1",
+    "http-proxy": "^1.11.1",
     "lodash": "~3.6.0",
     "md5": "^2.0.0",
     "ncp": "*",
+    "node-http-proxy": "^0.2.3",
     "winston": "^0.9.0"
   },
   "devDependencies": {

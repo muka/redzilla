@@ -41,15 +41,14 @@ lib.start = function(config, onReady) {
     if(typeof config === 'object') {
         _config.set(config)
     }
-
-    return serverManager.start().then(function(app) {
-        onReady && onReady(app)
-        return Promise.resolve(lib)
+    return processManager.reload().then(function() {
+        return Promise.resolve()
     })
     .then(function() {
         logger.info("Reloading instances")
-        return processManager.reload().then(function() {
+        return serverManager.start().then(function(app) {
             logger.debug("Startup completed")
+            onReady && onReady(app)
             return Promise.resolve()
         })
     })
