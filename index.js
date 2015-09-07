@@ -5,6 +5,26 @@ var lib = module.exports;
 
 lib.Promise = Promise
 
+var appInstance =  {
+    app: null,
+    server: null
+}
+
+/**
+ * Attach to a compatible express `app` instance
+ */
+lib.attachApp = function(app, server) {
+
+    if(!app && !server) {
+        return appInstance.app ? appInstance : false
+    }
+
+    appInstance.app = app
+    appInstance.server = server || app.server || null
+
+    return lib
+}
+
 lib.start = function(config, onReady) {
 
     if(typeof config === 'function') {

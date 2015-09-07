@@ -1,5 +1,8 @@
+
 var redzilla = require('../index')
 var assert = require("assert")
+var path = require("path")
+
 var Promise = redzilla.Promise
 
 var rp = require('request-promise')
@@ -30,7 +33,7 @@ var instanceUrl = function (name, op, auth) {
 
 after(function (done) {
 
-    var instancesDir = redzilla.getConfig().getInstancesDir()
+    var instancesDir = path.resolve( redzilla.getConfig().config.file.baseDir )
     var cache = require(instancesDir + '/cache.json')
 
     var rmdir = function (path) {

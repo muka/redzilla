@@ -19,18 +19,21 @@
     },
 
     "basePort": 3002,
-    "process": "localhost",
+
     "storage": "file",
+    "file": {
+        "baseDir": "./instances"
+    },
+
     "cacheFileName": "cache.json",
 
     "userPathPrefix": "/red",
     "adminPathPrefix": "/admin",
-
-    "instancesDir": "./instances",
-    "nodesDir": "./custom-nodes",
+    "adminEnableHttp": true,
 
     "paletteCategories": [ "subflows", "input", "output", "function", "social", "storage", "analysis", "advanced" ],
 
+    "process": "localhost",
     "localhost": {
         "node_src": "./node-red",
         "instancesDir": "./instances",

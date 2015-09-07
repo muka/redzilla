@@ -35,7 +35,7 @@ lib.instanceUrl = function (name, op, auth) {
 
 lib.cleanup = function() {
 
-    var instancesDir = redzilla.getConfig().getInstancesDir()
+    var instancesDir = require('path').resolve(redzilla.getConfig().config.file.baseDir)
     var cacheFile = instancesDir + '/cache.json'
     var cache = require(cacheFile)
 
