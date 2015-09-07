@@ -33,7 +33,7 @@ var instanceUrl = function (name, op, auth) {
 
 after(function (done) {
 
-    var instancesDir = path.resolve( redzilla.getConfig().config.file.baseDir )
+    var instancesDir = path.resolve( redzilla.getConfig().getInstancesDir() )
     var cache = require(instancesDir + '/cache.json')
 
     var rmdir = function (path) {

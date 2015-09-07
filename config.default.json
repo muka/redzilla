@@ -21,9 +21,9 @@
     "basePort": 3002,
 
     "storage": "file",
-    "file": {
-        "baseDir": "./instances"
-    },
+    
+    "instancesDir": "./instances",
+    "nodesDir": "./custom-nodes",
 
     "cacheFileName": "cache.json",
 
@@ -36,8 +36,6 @@
     "process": "localhost",
     "localhost": {
         "node_src": "./node-red",
-        "instancesDir": "./instances",
-        "nodesDir": "./custom-nodes",
         "bindHost": "127.0.1.1"
     },
 
