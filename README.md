@@ -2,21 +2,6 @@
 
 A node-red as-a-service instance launcher supporting custom authentication and instance management api (over sub-processes or docker)
 
-## Test with vagrant
-
-Vagant image is used for development mainly but may be good to try the appliance either
-
-```
-vagrant up
-vagrant ssh
-cd /vagrant
-bin/redzilla run -c examples/vagrant.config.json
-```
-
-Visit then `http://192.168.18.83:3000/red/hello-world` to start using an instance of node-red.
-
-Substitute `hello-world` with your name to get your very own.
-
 ## Installation
 
 ```
@@ -34,6 +19,25 @@ cd node-red
 npm i
 # sudo npm i -g grunt-cli
 grunt build
+```
+
+## Run the package
+
+`node bin/redzilla run`
+
+Visit then `http://192.168.18.83:3000/red/hello-world` to start using an instance of node-red.
+
+Substitute `hello-world` with your name to get your very own.
+
+## Test with vagrant
+
+Vagant image is used for development mainly but may be good to try the appliance either
+
+```
+vagrant up
+vagrant ssh
+cd /vagrant
+bin/redzilla run -c examples/vagrant.config.json
 ```
 
 ## Examples
