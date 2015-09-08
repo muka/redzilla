@@ -12,7 +12,7 @@
     "createOnRequest": true,
     "hash": "change to a very secret hash",
 
-    "auth": "basic",
+    "auth": "none",
     "admin": {
         "user": "admin",
         "pass": "admin"
@@ -21,7 +21,7 @@
     "basePort": 3002,
 
     "storage": "file",
-    
+
     "instancesDir": "./instances",
     "nodesDir": "./custom-nodes",
 
