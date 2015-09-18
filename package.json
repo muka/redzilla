@@ -1,5 +1,6 @@
 {
   "name": "redzilla",
+  "version": "0.1.6",
   "description": "a node-red instances generator",
   "main": "index.js",
   "scripts": {
