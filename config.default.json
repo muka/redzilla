@@ -7,7 +7,14 @@
     },
 
     "debug": true,
+
+    "consoleLog": true,
     "consoleLogLevel": "silly",
+
+    "fileLog": true,
+    "fileLogLevel": "info",
+    "fileLogPath": null,
+
 
     "createOnRequest": true,
     "hash": "change to a very secret hash",
