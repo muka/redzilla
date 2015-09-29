@@ -41,6 +41,7 @@ lib.start = function(config, onReady) {
     if(typeof config === 'object') {
         _config.set(config)
     }
+
     return processManager.reload().then(function() {
         return Promise.resolve()
     })

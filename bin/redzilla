@@ -3,14 +3,14 @@
 var redzilla = require('../index')
 var program = require('commander');
 
-var run = function() {
+var run = function(options) {
 
   var config = {}
 
-  if(program.config) {
+  if(options.config) {
       try {
           var p = require('path')
-          var fullpath = p.resolve(program.config)
+          var fullpath = p.resolve(options.config)
           config = require(fullpath)
       }
       catch(e) {
@@ -41,12 +41,17 @@ var run = function() {
 
 program
   .version(require('../package.json').version || 'master')
+
+program
+  .command("run")
   .option('-c, --config [src]', 'Load the specified configuration []', '')
-  .arguments("<cmd>")
-  .action(function(cmd) {
-    switch (cmd) {
-      case "run": return run()
-      default:    return program.outputHelp()
-    }
-  })
-  .parse(process.argv)
+  .action(run)
+
+// @TODO: add mgm via http client
+// program
+//   .option('-c, --config [src]', 'Load the specified configuration []', '')
+//   .command("instance <op> <instanceId>")
+//   .action(function(op, instanceId, options) {
+//   })
+
+program.parse(process.argv)

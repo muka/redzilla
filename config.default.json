@@ -37,6 +37,7 @@
     "userPathPrefix": "/red",
     "adminPathPrefix": "/admin",
     "adminEnableHttp": true,
+    "userEnableHttp": true,
 
     "paletteCategories": [ "subflows", "input", "output", "function", "social", "storage", "analysis", "advanced" ],
 
