@@ -43,12 +43,14 @@ lib.start = function(config, onReady) {
     }
 
     return processManager.reload().then(function() {
+        logger.info("Reloading instances")
         return Promise.resolve()
     })
     .then(function() {
-        logger.info("Reloading instances")
+        logger.info("Starting proxy server")
         return serverManager.start().then(function(app) {
             logger.debug("Startup completed")
+            logger.debug("====================")
             onReady && onReady(app)
             return Promise.resolve()
         })
