@@ -1,5 +1,7 @@
 # redzilla
 
+[![Join the chat at https://gitter.im/redzilla-nodered/Lobby](https://badges.gitter.im/redzilla-nodered/Lobby.svg)](https://gitter.im/redzilla-nodered/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 A node-red as-a-service instance launcher supporting custom authentication and instance management api (over sub-processes or docker)
 
 ## Installation
