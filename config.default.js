@@ -16,8 +16,9 @@ module.exports = {
   "docker": {
     // path to the docker socket, must be accessible by the running user
     "socketPath": "/var/run/docker.sock",
-    // the image to use to spawn instances from
-    "image": "nodered/node-red-docker",
+    // the image to use to spawn instances from.
+    // Important: If a tag is not specified, latest is assumed
+    "image": "nodered/node-red-docker:latest",
     // volume matches
     "volumes": {
       "nodesDir": "/nodes",
@@ -112,7 +113,6 @@ module.exports = {
      */
     "cacheFileName": "cache.json",
   },
-
 
   /**
    * Enable node-red GUI
