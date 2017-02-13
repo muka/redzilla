@@ -36,7 +36,7 @@ lib.instanceUrl = function (name, op, auth) {
 lib.cleanup = function() {
 
     var instancesDir = require('path').resolve(redzilla.getConfig().getInstancesDir())
-    var cacheFile = instancesDir + '/cache.json'
+    var cacheFile = require(redzilla.getConfig().getCacheFile())
     var cache = require(cacheFile)
 
     var rmdir = function (path) {

@@ -158,8 +158,8 @@ lib.instances.destroy = function(name, config) {
 }
 
 lib.instances.start = function(name, config) {
-    var pm = lib  .getProcessManager()
-    return pm.load(name).then(pm.start)
+    var pm = lib.getProcessManager()
+    return pm.load(name, config).then(pm.start)
 }
 
 lib.instances.stop = function(name, config) {

@@ -33,7 +33,7 @@ var instanceUrl = function (name, op, auth) {
 after(function (done) {
 
   var instancesDir = path.resolve(redzilla.getConfig().getInstancesDir())
-  var cache = require(instancesDir + '/cache.json')
+  var cache = require(redzilla.getConfig().getCacheFile())
 
   var rmdir = function (path) {
     var exec = require('child_process').exec;
@@ -52,7 +52,7 @@ after(function (done) {
         return rmdir(instancesDir + '/' + cache[name].uid)
       })
       .then(function () {
-        require('fs').unlinkSync(instancesDir + '/cache.json')
+        require('fs').unlinkSync(cache)
         done()
       })
       .catch(function (e) {
