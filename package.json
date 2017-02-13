@@ -4,7 +4,7 @@
   "description": "Multi-user node-red instances manager",
   "main": "index.js",
   "scripts": {
-    "test": "node mocha test/*"
+    "test": "./node_modules/mocha/bin/mocha test/*"
   },
   "keywords": [
     "node-red",
