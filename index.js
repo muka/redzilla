@@ -1,12 +1,11 @@
 var Promise = require('bluebird')
 
-var lib = module.exports;
-
+var lib = module.exports
 lib.Promise = Promise
 
 var appInstance = {
-  app: null,
-  server: null
+    app: null,
+    server: null
 }
 
 /**
@@ -14,72 +13,72 @@ var appInstance = {
  */
 lib.attachApp = function (app, server) {
 
-  if(!app && !server) {
-    return appInstance.app ? appInstance : false
-  }
+    if(!app && !server) {
+        return appInstance.app ? appInstance : false
+    }
 
-  appInstance.app = app
-  appInstance.server = server || app.server || null
+    appInstance.app = app
+    appInstance.server = server || app.server || null
 
-  return lib
+    return lib
 }
 
 lib.start = function (config, onReady) {
 
-  if(typeof config === 'function') {
-    onReady = config;
-    config = null
-  }
+    if(typeof config === 'function') {
+        onReady = config
+        config = null
+    }
 
-  var serverManager = require('./lib/serverManager'),
-    processManager = require('./lib/processManager'),
-    logger = require('./lib/logger'),
-    _config = require('./lib/config')
+    var serverManager = require('./lib/serverManager'),
+        processManager = require('./lib/processManager'),
+        logger = require('./lib/logger'),
+        _config = require('./lib/config')
 
 
-  if(typeof config === 'object') {
-    _config.set(config)
-  }
+    if(typeof config === 'object') {
+        _config.set(config)
+    }
 
-  return processManager.initialize()
+    return processManager.initialize()
     .then(function () {
-      return processManager.reload()
+        return processManager.reload()
     })
     .then(function () {
-      logger.info("Reloading instances")
-      return Promise.resolve()
-    })
-    .then(function () {
-      logger.info("Starting proxy server")
-      return serverManager.start().then(function (app) {
-        logger.debug("Startup completed")
-        logger.debug("====================")
-        onReady && onReady(app)
+        logger.info('Reloading instances')
         return Promise.resolve()
-      })
+    })
+    .then(function () {
+        logger.info('Starting proxy server')
+        return serverManager.start().then(function (app) {
+            logger.debug('Startup completed')
+            logger.debug('====================')
+            onReady && onReady(app)
+            return Promise.resolve()
+        })
     })
     .catch(function (e) {
-      logger.error("An error occured during setup")
-      logger.error(e)
-      return lib.stop()
+        logger.error('An error occured during setup')
+        logger.error(e)
+        return lib.stop()
     })
 }
 
 lib.stop = function () {
 
-  var serverManager = require('./lib/serverManager'),
-    processManager = require('./lib/processManager'),
-    logger = require('./lib/logger')
+    var serverManager = require('./lib/serverManager'),
+        processManager = require('./lib/processManager'),
+        logger = require('./lib/logger')
 
-  logger.info("Stopping..")
-  return processManager.stopAll()
+    logger.info('Stopping..')
+    return processManager.stopAll()
     .then(function () {
-      logger.debug("Stopped process manager")
-      return serverManager.stop()
+        logger.debug('Stopped process manager')
+        return serverManager.stop()
     })
     .then(function () {
-      logger.debug("Stopped server manager")
-      return Promise.resolve()
+        logger.debug('Stopped server manager')
+        return Promise.resolve()
     })
 }
 
@@ -88,7 +87,7 @@ lib.stop = function () {
  * @param {function} callback the function handling the auth process
  */
 lib.addAuth = function (type, callback) {
-  require('./lib/auth').addType(type, callback)
+    require('./lib/auth').addType(type, callback)
 }
 
 /**
@@ -96,35 +95,35 @@ lib.addAuth = function (type, callback) {
  * @param {function} callback the function handling the storage process
  */
 lib.addStorage = function (type, callback) {
-  require('./lib/storage').addType(type, callback)
+    require('./lib/storage').addType(type, callback)
 }
 
 lib.getServerManager = function () {
-  return require('./lib/serverManager')
+    return require('./lib/serverManager')
 }
 
 lib.getProcessManager = function () {
-  return require('./lib/processManager')
+    return require('./lib/processManager')
 }
 
 lib.getStorageManager = function () {
-  return require('./lib/storage')
+    return require('./lib/storage')
 }
 
 lib.getConfig = function () {
-  return require('./lib/config')
+    return require('./lib/config')
 }
 
 lib.getAuthManager = function () {
-  return require('./lib/auth')
+    return require('./lib/auth')
 }
 
 lib.getLogger = function () {
-  return require('./lib/logger')
+    return require('./lib/logger')
 }
 
 lib.setLogger = function (logger) {
-  require('./lib/logger').setLogger(logger)
+    require('./lib/logger').setLogger(logger)
 }
 
 
@@ -138,44 +137,38 @@ lib.instances = {}
  */
 lib.instances.get = function (name) {
 
-  var pm = lib.getProcessManager()
+    var pm = lib.getProcessManager()
 
-  if(!pm.exists(name)) {
-    throw new Error("Instance not found")
-  }
+    if(!pm.exists(name)) {
+        throw new Error('Instance not found')
+    }
 
-  return new pm.RedInstance(name)
+    return new pm.RedInstance(name)
 }
 
 lib.instances.create = lib.instances.add = function (name, config) {
-  return lib.getProcessManager()
+    return lib.getProcessManager()
     .create(name, config)
     .then(function (instanceConfig) {
-      return Promise.resolve(lib.instances.get(instanceConfig.name))
+        return Promise.resolve(lib.instances.get(instanceConfig.name))
     })
 }
 
-lib.instances.destroy = function (name, config) {
-  return lib.getProcessManager()
-    .destroy(name)
-}
-
 lib.instances.start = function (name, config) {
-  var pm = lib.getProcessManager()
-  return pm.load(name, config).then(pm.start)
+    var pm = lib.getProcessManager()
+    return pm.load(name, config).then(pm.start)
 }
 
-lib.instances.stop = function (name, config) {
-  return lib.getProcessManager()
-    .stop(name)
+lib.instances.stop = function (name) {
+    return lib.getProcessManager().stop(name)
 }
 
 lib.instances.list = function () {
 
-  var pm = lib.getProcessManager()
-  var instances = pm.getInstances()
+    var pm = lib.getProcessManager()
+    var instances = pm.getInstances()
 
-  return Object.keys(instances).map(function (name) {
-    return new pm.RedInstance(name)
-  })
+    return Object.keys(instances).map(function (name) {
+        return new pm.RedInstance(name)
+    })
 }
