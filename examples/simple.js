@@ -1,14 +1,12 @@
 
-var redzilla = require('../index')
+let redzilla = require('../index')
+let logger = require('../lib/logger')
 
 redzilla.start()
   .then(function() {
-      return redzilla.getServerManager().app()
-  })
-  .then(function(app) {
-      return redzilla.instances.start('demo')
+    return redzilla.instances.start('demo')
   })
   .catch((e)=> {
-      console.warn('An error occured: %j', e)
-      return redzilla.stop().finally(process.exit)
+    logger.error('An error occured: %j', e)
+    return redzilla.stop().finally(process.exit)
   })
