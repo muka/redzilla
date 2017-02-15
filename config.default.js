@@ -19,6 +19,8 @@ module.exports = {
     // the image to use to spawn instances from.
     // Important: If a tag is not specified, latest is assumed
     'image': 'nodered/node-red-docker:latest',
+    // Memory limit in MB
+    'memoryLimit': 120,
     // volume matches
     'volumes': {
       'nodesDir': '/nodes',

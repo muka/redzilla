@@ -17,3 +17,5 @@ rules:
   semi:
     - error
     - never
+  no-octal:
+    - off
