@@ -21,6 +21,11 @@ module.exports = {
     'image': 'nodered/node-red-docker:latest',
     // Memory limit in MB
     'memoryLimit': 120,
+    //Network mode to bind to
+    // create a new one with `docker network create redzilla`
+    'network': 'redzilla',
+    //force the container to be recreated every time
+    'alwaysRecreate': true,
     // volume matches
     'volumes': {
       'nodesDir': '/nodes',
