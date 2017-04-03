@@ -1,0 +1,41 @@
+version: '2'
+
+services:
+  proxy:
+    image: traefik
+    command: --web --docker --docker.watch --docker.domain=localhost --logLevel=DEBUG --entryPoints="Name:http Address::80"
+    networks:
+      - redzilla
+    ports:
+      - "80:80"
+      - "8080:8080"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /dev/null:/traefik.toml
+
+  red1:
+    image: nodered/node-red-docker
+    container_name: red1
+    networks:
+      - redzilla
+    volumes:
+      - ./tmp/red1:/data
+    labels:
+      - "traefik.backend=red1"
+      - "traefik.port=1880"
+      - "traefik.frontend.entryPoints=http"
+  red2:
+    image: nodered/node-red-docker
+    container_name: red2
+    networks:
+      - redzilla
+    volumes:
+      - ./tmp/red2:/data
+    labels:
+      - "traefik.backend=red2"
+      - "traefik.port=1880"
+      - "traefik.frontend.entryPoints=http"
+
+networks:
+  redzilla:
+    driver: bridge

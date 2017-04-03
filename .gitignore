@@ -1,7 +1,4 @@
-node_modules
-nbproject
 instances/*
 custom-nodes/*
 logs/*
-docker/node-red
-.vagrant
+tmp/*
