@@ -15,6 +15,3 @@ type Instance struct {
 	Name    string
 	Created time.Time
 }
-
-//Instances a list of Instance
-type Instances []Instance

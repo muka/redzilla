@@ -14,20 +14,26 @@ import (
 //StartServer start API HTTP server
 func StartServer(cfg *model.Config) error {
 
-	//StartInstanceHandler list instaces
-	var StartInstanceHandler = func(rw http.ResponseWriter, r *http.Request) {
-	}
+	//InstanceHandler handle instance operations
+	var InstanceHandler = func(rw http.ResponseWriter, r *http.Request) {
 
-	//GetInstanceHandler list instaces
-	var GetInstanceHandler = func(rw http.ResponseWriter, r *http.Request) {
-	}
+		vars := mux.Vars(r)
+		id := vars["id"]
 
-	//RestartInstanceHandler list instaces
-	var RestartInstanceHandler = func(rw http.ResponseWriter, r *http.Request) {
-	}
+		log.Infof("Instance req id:%s", id)
 
-	//StopInstanceHandler list instaces
-	var StopInstanceHandler = func(rw http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodGet:
+
+			break
+		case http.MethodPost:
+
+			break
+		case http.MethodDelete:
+
+			break
+
+		}
 	}
 
 	//ListInstancesHandler list instaces
@@ -37,17 +43,17 @@ func StartServer(cfg *model.Config) error {
 
 		list, err := ListInstances(cfg)
 		if err != nil {
-			log.Info("Panic fetching instances %v", err)
+			log.Info("Panic fetching instances: %s", err)
 			panic(err)
 		}
 
-		log.Info("Fetched instances %v", list)
-
+		log.Info("Fetched instances")
 		b, err := json.Marshal(list)
 		if err != nil {
 			panic(err)
 		}
 
+		rw.Header().Add("content-type", "application/json")
 		rw.Write(b)
 	}
 
@@ -66,10 +72,7 @@ func StartServer(cfg *model.Config) error {
 	)).Subrouter()
 
 	v2router.Methods("GET").Path("/instances").HandlerFunc(ListInstancesHandler)
-	v2router.Methods("POST").Path("/instances").HandlerFunc(StartInstanceHandler)
-	v2router.Methods("GET").Path("/instances/{id}").HandlerFunc(GetInstanceHandler)
-	v2router.Methods("PUT").Path("/instances/{id}").HandlerFunc(RestartInstanceHandler)
-	v2router.Methods("DELETE").Path("/instances/{id}").HandlerFunc(StopInstanceHandler)
+	v2router.Methods("GET", "POST", "PUT", "DELETE").Path("/instances/{id}").HandlerFunc(InstanceHandler)
 
 	log.Infof("Starting API at %s", cfg.APIPort)
 	return http.ListenAndServe(cfg.APIPort, r)

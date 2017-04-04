@@ -8,16 +8,10 @@ import (
 var store *Store
 
 //GetStore return the store instance
-func GetStore(cfg *model.Config) *Store {
-
-	log.Warn(store)
-	log.Warn(&store)
-
+func GetStore(collection string, cfg *model.Config) *Store {
 	if store == nil {
 		log.Infof("Initializing store at %s", cfg.StorePath)
-		store = NewStore(cfg.StorePath)
+		store = NewStore(collection, cfg.StorePath)
 	}
-
-	log.Error(store)
 	return store
 }

@@ -1,17 +1,16 @@
 package storage
 
-import (
-	"github.com/nanobox-io/golang-scribble"
-)
+import "github.com/nanobox-io/golang-scribble"
 
 //Store abstract a simple store
 type Store struct {
-	filepath string
-	db       *scribble.Driver
+	filepath   string
+	db         *scribble.Driver
+	collection string
 }
 
 //NewStore create a new storage
-func NewStore(path string) *Store {
+func NewStore(collection string, path string) *Store {
 
 	// create a new scribble database, providing a destination for the database to live
 	db, err := scribble.New(path, nil)
@@ -19,30 +18,41 @@ func NewStore(path string) *Store {
 		panic(err)
 	}
 
+	err = createStoreDir(path)
+	if err != nil {
+		panic(err)
+	}
+
+	err = createEmptyFile(collection, path)
+	if err != nil {
+		panic(err)
+	}
+
 	s := Store{
-		filepath: path,
-		db:       db,
+		filepath:   path,
+		db:         db,
+		collection: collection,
 	}
 
 	return &s
 }
 
 //Save a record
-func (s Store) Save(table string, id string, record interface{}) error {
-	return s.db.Write(table, id, record)
+func (s Store) Save(id string, record interface{}) error {
+	return s.db.Write(s.collection, id, record)
 }
 
 //Load a record
-func (s Store) Load(table string, id string, result interface{}) error {
-	return s.db.Read(table, id, result)
+func (s Store) Load(id string, result interface{}) error {
+	return s.db.Read(s.collection, id, result)
 }
 
 //Delete a record
-func (s Store) Delete(table string, id string) error {
-	return s.db.Delete(table, id)
+func (s Store) Delete(id string) error {
+	return s.db.Delete(s.collection, id)
 }
 
 //List all records
-func (s Store) List(table string) ([]string, error) {
-	return s.db.ReadAll(table)
+func (s Store) List() ([]string, error) {
+	return s.db.ReadAll(s.collection)
 }

@@ -12,18 +12,16 @@ import (
 var instanceCollection = "instances"
 
 //ListInstances list available instances
-func ListInstances(cfg *model.Config) (*model.Instances, error) {
+func ListInstances(cfg *model.Config) (*[]model.Instance, error) {
 
-	store := storage.GetStore(cfg)
+	store := storage.GetStore(instanceCollection, cfg)
 
-	log.Warn(store)
-
-	jsonlist, err := store.List(instanceCollection)
+	jsonlist, err := store.List()
 	if err != nil {
 		return nil, err
 	}
 
-	list := make(model.Instances, len(jsonlist))
+	list := make([]model.Instance, len(jsonlist))
 	for _, jsonstr := range jsonlist {
 		item := model.Instance{}
 		err = json.Unmarshal([]byte(jsonstr), item)
@@ -33,6 +31,7 @@ func ListInstances(cfg *model.Config) (*model.Instances, error) {
 		list = append(list, item)
 	}
 
+	log.Debugf("Found %s instances", len(list))
 	return &list, err
 }
 
@@ -41,7 +40,7 @@ func NewInstance(name string, cfg *model.Config) *Instance {
 	i := Instance{
 		instance: model.NewInstance(name),
 		cfg:      cfg,
-		store:    storage.GetStore(cfg),
+		store:    storage.GetStore(instanceCollection, cfg),
 	}
 	return &i
 }
@@ -58,7 +57,7 @@ func (i *Instance) Start() error {
 
 	log.Debugf("Starting instance %s", i.instance.Name)
 
-	err := i.store.Save(instanceCollection, i.instance.Name, i.instance)
+	err := i.store.Save(i.instance.Name, i.instance)
 	if err != nil {
 		return err
 	}
@@ -76,7 +75,7 @@ func (i *Instance) Stop() error {
 
 	log.Debugf("Stopping instance %s", i.instance.Name)
 
-	err := i.store.Delete(instanceCollection, i.instance.Name)
+	err := i.store.Delete(i.instance.Name)
 	if err != nil {
 		return err
 	}

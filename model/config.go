@@ -13,6 +13,6 @@ func NewDefaultConfig() *Config {
 	return &Config{
 		APIPort:   ":3000",
 		ImageName: "nodered/node-red-docker",
-		StorePath: "./data.json",
+		StorePath: "./data/store",
 	}
 }
