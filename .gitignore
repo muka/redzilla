@@ -2,3 +2,4 @@ instances/*
 custom-nodes/*
 logs/*
 tmp/*
+data.json

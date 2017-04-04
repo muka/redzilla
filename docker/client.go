@@ -2,6 +2,7 @@ package docker
 
 import (
 	"strings"
+	"time"
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/docker/docker/api/types"
@@ -34,7 +35,7 @@ func getClient() (*client.Client, error) {
 //StartContainer start a container
 func StartContainer(name string, cfg *model.Config) error {
 
-	log.Info("Starting container")
+	log.Debug("Starting container")
 
 	cli, err := getClient()
 	if err != nil {
@@ -53,13 +54,13 @@ func StartContainer(name string, cfg *model.Config) error {
 	log.Debugf("Pulled image %s", cfg.ImageName)
 
 	// TODO: Inspect to check if name exists already
-	info, err := GetContainer(ctx, name)
+	info, err := GetContainer(name)
 	if err != nil {
 		return err
 	}
 
-	exists := info != nil
-	debug("%s exists %t", name, exists)
+	exists := info.ContainerJSONBase != nil
+	log.Debugf("%s exists %t", name, exists)
 
 	var containerID string
 
@@ -106,11 +107,11 @@ func StartContainer(name string, cfg *model.Config) error {
 		}
 
 		containerID = resp.ID
-		log.Infof("Created container %s", containerID)
+		log.Debugf("Created container %s", name)
 	} else {
 
-		containerID = info.ID
-		log.Infof("Reusing container %s", containerID)
+		containerID = info.ContainerJSONBase.ID
+		log.Debugf("Reusing container %s", name)
 
 	}
 
@@ -118,7 +119,7 @@ func StartContainer(name string, cfg *model.Config) error {
 		return err
 	}
 
-	log.Infof("Started container %s", containerID)
+	log.Debugf("Started container %s", name)
 
 	// if _, err = cli.ContainerWait(ctx, containerID); err != nil {
 	// 	return err
@@ -139,19 +140,40 @@ func StartContainer(name string, cfg *model.Config) error {
 	// 	return err
 	// }
 
-	log.Infof("Container %s started", containerID)
-
 	return nil
 }
 
 //StopContainer stop a container
-func StopContainer() error {
-	return nil
+func StopContainer(name string) error {
+
+	cli, err := getClient()
+	if err != nil {
+		return err
+	}
+
+	ctx := context.Background()
+
+	info, err := GetContainer(name)
+	if err != nil {
+		return err
+	}
+
+	if info.ContainerJSONBase == nil {
+		log.Warnf("Cannot stop %s, does not exists", name)
+		return nil
+	}
+
+	containerID := info.ContainerJSONBase.ID
+	timeout := time.Second * 5
+
+	log.Debugf("Stop container %s", name)
+	return cli.ContainerStop(ctx, containerID, &timeout)
 }
 
 // GetContainer return container info by name
-func GetContainer(ctx context.Context, name string) (*types.ContainerJSON, error) {
+func GetContainer(name string) (*types.ContainerJSON, error) {
 
+	ctx := context.Background()
 	emptyJSON := &types.ContainerJSON{}
 
 	cli, err := getClient()
