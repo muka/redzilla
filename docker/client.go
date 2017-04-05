@@ -7,16 +7,72 @@ import (
 	log "github.com/Sirupsen/logrus"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
+	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/client"
 	"github.com/docker/go-connections/nat"
 	"github.com/muka/redzilla/model"
-	dbg "github.com/tj/go-debug"
 	"golang.org/x/net/context"
 )
 
-var debug = dbg.Debug("redzilla:docker")
+//ContainerEvent store a container event
+type ContainerEvent struct {
+	ID     string
+	Name   string
+	Action string
+}
 
 var dockerClient *client.Client
+
+// ListenEvents watches docker events an handle state modifications
+func ListenEvents(cfg *model.Config) {
+
+	cli, err := getClient()
+	if err != nil {
+		panic(err)
+	}
+
+	ctx := context.Background()
+	// ctx1 := context.Background()
+	// ctx, cancel := context.WithCancel(ctx1)
+
+	f := filters.NewArgs()
+	f.Add("label", "redzilla=1")
+	// <-chan events.Message, <-chan error
+	msgChan, errChan := cli.Events(ctx, types.EventsOptions{
+		Filters: f,
+	})
+
+	go func() {
+		for {
+			select {
+			case event := <-msgChan:
+				if &event != nil {
+
+					log.Infof("Event recieved: %s %s ", event.Action, event.Type)
+					if event.Actor.Attributes != nil {
+
+						// log.Infof("%s: %s | %s | %s | %s | %s", event.Actor.Attributes["name"], event.Action, event.From, event.ID, event.Status, event.Type)
+
+						name := event.Actor.Attributes["name"]
+						switch event.Action {
+						case "start":
+							log.Debugf("Container started %s", name)
+							break
+						case "die":
+							log.Debugf("Container exited %s", name)
+							break
+						}
+					}
+				}
+			case err := <-errChan:
+				if err != nil {
+					log.Errorf("Error event recieved: %s", err.Error())
+				}
+			}
+		}
+	}()
+
+}
 
 //return a docker client
 func getClient() (*client.Client, error) {
@@ -35,7 +91,7 @@ func getClient() (*client.Client, error) {
 //StartContainer start a container
 func StartContainer(name string, cfg *model.Config) error {
 
-	log.Debug("Starting container")
+	log.Debugf("Starting docker container %s", name)
 
 	cli, err := getClient()
 	if err != nil {
@@ -46,6 +102,7 @@ func StartContainer(name string, cfg *model.Config) error {
 	// options := types.ContainerStartOptions{}
 	ctx := context.Background()
 
+	log.Debugf("Pulling image %s if not available", cfg.ImageName)
 	_, err = cli.ImagePull(ctx, cfg.ImageName, types.ImagePullOptions{})
 	if err != nil {
 		return err
@@ -53,19 +110,19 @@ func StartContainer(name string, cfg *model.Config) error {
 
 	log.Debugf("Pulled image %s", cfg.ImageName)
 
-	// TODO: Inspect to check if name exists already
 	info, err := GetContainer(name)
 	if err != nil {
 		return err
 	}
 
 	exists := info.ContainerJSONBase != nil
-	log.Debugf("%s exists %t", name, exists)
+	log.Debugf("Container %s exists: %t", name, exists)
 
 	var containerID string
 
 	if !exists {
 
+		log.Debugf("Creating new container %s ", name)
 		resp, err := cli.ContainerCreate(ctx,
 			&container.Config{
 				Image:        cfg.ImageName,
@@ -77,6 +134,7 @@ func StartContainer(name string, cfg *model.Config) error {
 					"1880/tcp": {},
 				},
 				Labels: map[string]string{
+					"redzilla":                     "1",
 					"traefik.backend":              name,
 					"traefik.port":                 "1880",
 					"traefik.frontend.entryPoints": "http",
@@ -107,13 +165,13 @@ func StartContainer(name string, cfg *model.Config) error {
 		}
 
 		containerID = resp.ID
-		log.Debugf("Created container %s", name)
+		log.Debugf("Created new container %s", name)
 	} else {
-
 		containerID = info.ContainerJSONBase.ID
 		log.Debugf("Reusing container %s", name)
-
 	}
+
+	log.Debugf("Container %s with ID %s", name, containerID)
 
 	if err = cli.ContainerStart(ctx, containerID, types.ContainerStartOptions{}); err != nil {
 		return err
@@ -126,25 +184,25 @@ func StartContainer(name string, cfg *model.Config) error {
 	// }
 	// debug("Waited container")
 
-	// out, err := cli.ContainerLogs(ctx, containerID, types.ContainerLogsOptions{
-	// 	ShowStderr: true,
-	// 	ShowStdout: true,
-	// 	Follow:     true,
-	// })
-	// if err != nil {
-	// 	return err
-	// }
-	//
-	// _, err = io.Copy(os.Stdout, out)
-	// if err != nil {
-	// 	return err
-	// }
+	// go func() {
+	// 	out, err := cli.ContainerLogs(ctx, containerID, types.ContainerLogsOptions{
+	// 		ShowStderr: true,
+	// 		ShowStdout: true,
+	// 		Follow:     true,
+	// 	})
+	// 	if err != nil {
+	// 		return
+	// 	}
+	// 	io.Copy(os.Stdout, out)
+	// }()
 
 	return nil
 }
 
 //StopContainer stop a container
 func StopContainer(name string) error {
+
+	log.Debugf("Stopping container %s", name)
 
 	cli, err := getClient()
 	if err != nil {
@@ -166,8 +224,13 @@ func StopContainer(name string) error {
 	containerID := info.ContainerJSONBase.ID
 	timeout := time.Second * 5
 
-	log.Debugf("Stop container %s", name)
-	return cli.ContainerStop(ctx, containerID, &timeout)
+	err = cli.ContainerStop(ctx, containerID, &timeout)
+	if err != nil {
+		return err
+	}
+
+	log.Debugf("Stopped container %s", name)
+	return nil
 }
 
 // GetContainer return container info by name
@@ -188,6 +251,6 @@ func GetContainer(name string) (*types.ContainerJSON, error) {
 		}
 		return emptyJSON, err
 	}
-	debug("Inspect %s: %s", name, json.ID)
+
 	return &json, nil
 }

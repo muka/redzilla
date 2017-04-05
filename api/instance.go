@@ -23,15 +23,15 @@ func ListInstances(cfg *model.Config) (*[]model.Instance, error) {
 
 	list := make([]model.Instance, len(jsonlist))
 	for _, jsonstr := range jsonlist {
-		item := model.Instance{}
+		item := &model.Instance{}
 		err = json.Unmarshal([]byte(jsonstr), item)
 		if err != nil {
 			return nil, err
 		}
-		list = append(list, item)
+		list = append(list, *item)
 	}
 
-	log.Debugf("Found %s instances", len(list))
+	log.Debugf("Found %d instances", len(list))
 	return &list, err
 }
 
@@ -52,12 +52,38 @@ type Instance struct {
 	store    *storage.Store
 }
 
-//Start instance
+//Save instance status
+func (i *Instance) Save() error {
+
+	log.Debugf("Saving instance state %s", i.instance.Name)
+
+	err := i.store.Save(i.instance.Name, i.instance)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+//Create instance without starting
+func (i *Instance) Create() error {
+
+	log.Debugf("Creating instance %s", i.instance.Name)
+
+	err := i.Save()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+//Start an instance creating a record for if it does not exists
 func (i *Instance) Start() error {
 
 	log.Debugf("Starting instance %s", i.instance.Name)
 
-	err := i.store.Save(i.instance.Name, i.instance)
+	err := i.Save()
 	if err != nil {
 		return err
 	}
@@ -70,17 +96,15 @@ func (i *Instance) Start() error {
 	return nil
 }
 
-//Stop instance
-func (i *Instance) Stop() error {
+//Remove instance and stop it if running
+func (i *Instance) Remove() error {
 
-	log.Debugf("Stopping instance %s", i.instance.Name)
-
-	err := i.store.Delete(i.instance.Name)
+	err := i.Stop()
 	if err != nil {
 		return err
 	}
 
-	err = docker.StopContainer(i.instance.Name)
+	err = i.store.Delete(i.instance.Name)
 	if err != nil {
 		return err
 	}
@@ -88,10 +112,42 @@ func (i *Instance) Stop() error {
 	return nil
 }
 
-//Exists instance
+//Stop instance without removing
+func (i *Instance) Stop() error {
+
+	log.Debugf("Stopping instance %s", i.instance.Name)
+
+	err := docker.StopContainer(i.instance.Name)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+//GetStatus return the current instance known status
+func (i *Instance) GetStatus() *model.Instance {
+	return i.instance
+}
+
+//Exists check if the instance has been stored
 func (i *Instance) Exists() (bool, error) {
 
 	log.Debugf("Check if instance %s exists", i.instance.Name)
+
+	dbInstance := model.Instance{}
+	err := i.store.Load(i.instance.Name, dbInstance)
+	if err != nil {
+		return false, err
+	}
+
+	return true, nil
+}
+
+//IsRunning check if the instance is running
+func (i *Instance) IsRunning() (bool, error) {
+
+	log.Debugf("Check if instance %s is running", i.instance.Name)
 
 	info, err := docker.GetContainer(i.instance.Name)
 	if err != nil {
@@ -102,7 +158,7 @@ func (i *Instance) Exists() (bool, error) {
 }
 
 //Restart instance
-func (i *Instance) Restart(name string) error {
+func (i *Instance) Restart() error {
 	i.Stop()
 	return i.Start()
 }

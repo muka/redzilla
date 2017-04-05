@@ -11,6 +11,10 @@ func main() {
 
 	cfg := model.NewDefaultConfig()
 
+	log.SetLevel(log.DebugLevel)
+
+	docker.ListenEvents(cfg)
+
 	err := api.StartServer(cfg)
 	if err != nil {
 		panic(err)

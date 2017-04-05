@@ -11,6 +11,28 @@ import (
 	"github.com/muka/redzilla/model"
 )
 
+// JSONError a JSON response in case of error
+type JSONError struct {
+	Code    int    `json:"code"`
+	Message string `json:"message"`
+}
+
+// GetJSONErrorMessage produce a JSON error message
+func GetJSONErrorMessage(code int, message string) []byte {
+	res, err := json.Marshal(JSONError{code, message})
+	if err != nil {
+		panic(err)
+	}
+	return res
+}
+
+// ResponseWithError send an error response with a common JSON message
+func ResponseWithError(rw http.ResponseWriter, code int, message string) {
+	log.Infof("Error response [%d] %s", code, message)
+	rw.WriteHeader(code)
+	rw.Write([]byte(GetJSONErrorMessage(code, message)))
+}
+
 //StartServer start API HTTP server
 func StartServer(cfg *model.Config) error {
 
@@ -18,21 +40,78 @@ func StartServer(cfg *model.Config) error {
 	var InstanceHandler = func(rw http.ResponseWriter, r *http.Request) {
 
 		vars := mux.Vars(r)
-		id := vars["id"]
+		name := vars["name"]
 
-		log.Infof("Instance req id:%s", id)
+		log.Debugf("Instance req %s name:%s", r.Method, name)
+
+		instance := NewInstance(name, cfg)
+
+		instanceMustExists := func() bool {
+			exists, err := instance.Exists()
+			if err != nil {
+				ResponseWithError(rw, 500, err.Error())
+				return false
+			}
+			if !exists {
+				ResponseWithError(rw, 404, "Not found")
+				return false
+			}
+			return true
+		}
 
 		switch r.Method {
 		case http.MethodGet:
+			log.Debugf("Load instance %s", name)
+
+			if !instanceMustExists() {
+				return
+			}
 
 			break
 		case http.MethodPost:
+			log.Debugf("Start instance %s", name)
+
+			err := instance.Start()
+
+			if err != nil {
+				ResponseWithError(rw, 500, err.Error())
+				return
+			}
+
+			rw.WriteHeader(202)
+
+			break
+		case http.MethodPut:
+			log.Debugf("Restart instance %s", name)
+
+			if !instanceMustExists() {
+				return
+			}
+
+			err := instance.Restart()
+			if err != nil {
+				ResponseWithError(rw, 500, err.Error())
+				return
+			}
+
+			rw.WriteHeader(202)
 
 			break
 		case http.MethodDelete:
+			log.Debugf("Stop instance %s", name)
 
+			if !instanceMustExists() {
+				return
+			}
+
+			err := instance.Stop()
+			if err != nil {
+				ResponseWithError(rw, 500, err.Error())
+				return
+			}
+
+			rw.WriteHeader(202)
 			break
-
 		}
 	}
 
@@ -72,7 +151,7 @@ func StartServer(cfg *model.Config) error {
 	)).Subrouter()
 
 	v2router.Methods("GET").Path("/instances").HandlerFunc(ListInstancesHandler)
-	v2router.Methods("GET", "POST", "PUT", "DELETE").Path("/instances/{id}").HandlerFunc(InstanceHandler)
+	v2router.Methods("GET", "POST", "PUT", "DELETE").Path("/instances/{name:[A-Za-z0-9_-]+}").HandlerFunc(InstanceHandler)
 
 	log.Infof("Starting API at %s", cfg.APIPort)
 	return http.ListenAndServe(cfg.APIPort, r)
