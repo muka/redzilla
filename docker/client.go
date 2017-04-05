@@ -7,6 +7,7 @@ import (
 	log "github.com/Sirupsen/logrus"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
+	"github.com/docker/docker/api/types/events"
 	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/client"
 	"github.com/docker/go-connections/nat"
@@ -16,15 +17,22 @@ import (
 
 //ContainerEvent store a container event
 type ContainerEvent struct {
-	ID     string
-	Name   string
-	Action string
+	ID      string
+	Name    string
+	Action  string
+	Message events.Message
 }
 
+var eventsChannel = make(chan ContainerEvent)
 var dockerClient *client.Client
 
+//GetEventsChannel return the main channel reporting docker events
+func GetEventsChannel() <-chan ContainerEvent {
+	return eventsChannel
+}
+
 // ListenEvents watches docker events an handle state modifications
-func ListenEvents(cfg *model.Config) {
+func ListenEvents(cfg *model.Config) <-chan ContainerEvent {
 
 	cli, err := getClient()
 	if err != nil {
@@ -62,6 +70,15 @@ func ListenEvents(cfg *model.Config) {
 							log.Debugf("Container exited %s", name)
 							break
 						}
+
+						ev := ContainerEvent{
+							Action:  event.Action,
+							ID:      event.ID,
+							Name:    name,
+							Message: event,
+						}
+						eventsChannel <- ev
+
 					}
 				}
 			case err := <-errChan:
@@ -72,6 +89,7 @@ func ListenEvents(cfg *model.Config) {
 		}
 	}()
 
+	return eventsChannel
 }
 
 //return a docker client

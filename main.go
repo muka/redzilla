@@ -2,9 +2,9 @@ package main
 
 import (
 	log "github.com/Sirupsen/logrus"
-	"github.com/muka/redzilla/api"
 	"github.com/muka/redzilla/docker"
 	"github.com/muka/redzilla/model"
+	"github.com/muka/redzilla/service"
 )
 
 func main() {
@@ -13,10 +13,9 @@ func main() {
 
 	log.SetLevel(log.DebugLevel)
 
-	docker.ListenEvents(cfg)
-
-	err := api.StartServer(cfg)
+	err := service.Start(cfg)
 	if err != nil {
+		log.Errorf("Error: %s", err.Error())
 		panic(err)
 	}
 
