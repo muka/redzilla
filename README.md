@@ -1,6 +1,6 @@
 # redzilla
 
-`redzilla` is a service which allow to create easily instances of (node-red)[http://nodered.org/]
+`redzilla` is a service which allow to create easily instances of [node-red](http://nodered.org/)
 
 Currently uses docker and traefik to create a scalable yet configurable service.
 
