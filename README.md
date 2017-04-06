@@ -1,93 +1,58 @@
 # redzilla
 
-[![Join the chat at https://gitter.im/redzilla-nodered/help](https://badges.gitter.im/redzilla-nodered/help.svg)](https://gitter.im/redzilla-nodered/help?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+`redzilla` is a service which allow to create easily instances of IBM `node-red`
 
-A node-red as-a-service instance launcher supporting custom authentication and instance management api (over sub-processes or docker)
+Currently uses docker and traefik to create a scalable yet configurable service.
 
-## Installation
+Usage
+---
 
-```
-git clone https://github.com/muka/redzilla.git
-cd redzilla
-git submodule init
-git submodule update
-npm i
-```
+Start the services, by default it run on port `80`
 
-### Install node-red deps
+`docker-compose up -d`
 
-```
-cd node-red
-npm i
-# sudo npm i -g grunt-cli
-grunt build
-```
+Create a new instance named `hello-world`
 
-## Run the package
+`curl -X POST http://redzilla.localhost/v2/instances/hello-world`
 
-`node bin/redzilla run`
+Open in the browser
 
-Visit then `http://192.168.18.83:3000/red/hello-world` to start using an instance of node-red.
+`xdg-open http://hello-world.localhost/`
 
-Substitute `hello-world` with your name to get your very own.
+Done!
 
-## Test with vagrant
+API
+---
 
-Vagant image is used for development mainly but may be good to try the appliance either
+API is temporary and subject to change
 
-```
-vagrant up
-vagrant ssh
-cd /vagrant
-bin/redzilla run -c examples/vagrant.config.json
-```
+List instances
 
-## Examples
+  `curl -X GET http://redzilla.localhost/v2/instances`
 
-Run `node examples/example.js` and visit `http://127.0.0.1:3000`
+Create or start an instance
 
-The example creates a list of links that points to new instances
+  `curl -X POST http://redzilla.localhost/v2/instances/instance-name`
 
-### Create a docker image
+Restart an instance (stop + start)
 
-`sudo ./build-docker.sh`
+  `curl -X POST http://redzilla.localhost/v2/instances/instance-name`
 
-## Usage
+Stop an instance
 
-A sample configuration can be found in `config.default.json`
+  `curl -X DELETE http://redzilla.localhost/v2/instances/instance-name`
 
-From the api
+Prerequisites
+---
 
-```javascript
-# npm i --save muka/redzilla
-var redzilla = require('redzilla')
-redzilla.start(config).then(function() {
-  console.log("Up and running")
-  return redzilla.getServerManager().app()
-})
-.then(function(app) {
-  // `app` is an express instance
-})
-```
+To run `redzilla` you need `docker` and `docker-compose` installed.
 
-There is an example of api usage in `redzilla/examples` and tests  in `test/` folder where the api is used extensively
+For example on a recent ubuntu linux
 
-## Tests
+- Install docker `wget -qO- https://get.docker.com/ | sh`
+- Install docker-compose `sudo apt-get install python-pip -y && sudo pip install docker-compose`
 
-Run `mocha test/*` to run unit tests
+License
+---
 
-## TODO
-
-- ~~unit tests~~
-- documentation
-- more storage types (mongodb)
-- more auth types (oauth2 via passportjs)
-- clustering
-
-## License
-
-The MIT License
-
-Copyright (c) 2015 luca capra <luca.capra@gmail.com>
-
-See LICENSE for further informations
+The MIT license. See `LICENSE` file for details
