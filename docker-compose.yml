@@ -16,7 +16,6 @@ services:
 
   redzilla:
     image: opny/redzilla
-    build: .
     container_name: redzilla
     networks:
       - redzilla
