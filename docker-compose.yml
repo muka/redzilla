@@ -6,6 +6,7 @@ services:
     command: --web --docker --docker.watch --docker.domain=localhost --logLevel=DEBUG --entryPoints="Name:http Address::80"
     networks:
       - redzilla
+      - webproxy
     ports:
       - "80:80"
       - "8080:8080"
@@ -16,6 +17,7 @@ services:
   redzilla:
     image: opny/redzilla
     build: .
+    container_name: redzilla
     networks:
       - redzilla
     ports:
@@ -42,5 +44,7 @@ services:
   #     - "traefik.frontend.entryPoints=http"
 
 networks:
+  webproxy:
+    driver: bridge
   redzilla:
     driver: bridge
