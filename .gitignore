@@ -3,3 +3,5 @@ custom-nodes/*
 logs/*
 tmp/*
 data/*
+redzilla
+debug

@@ -13,6 +13,21 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
       - /dev/null:/traefik.toml
 
+  redzilla:
+    image: opny/redzilla
+    build: .
+    networks:
+      - redzilla
+    ports:
+      - "3000:3000"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./data:/data
+    labels:
+      - "traefik.backend=redzilla"
+      - "traefik.port=3000"
+      - "traefik.frontend.entryPoints=http"
+
   #  This used to work
   # test2:
   #   image: nodered/node-red-docker
