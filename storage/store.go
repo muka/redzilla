@@ -1,6 +1,10 @@
 package storage
 
-import "github.com/nanobox-io/golang-scribble"
+import (
+	"path/filepath"
+
+	"github.com/nanobox-io/golang-scribble"
+)
 
 //Store abstract a simple store
 type Store struct {
@@ -18,12 +22,7 @@ func NewStore(collection string, path string) *Store {
 		panic(err)
 	}
 
-	err = createStoreDir(path)
-	if err != nil {
-		panic(err)
-	}
-
-	err = createEmptyFile(collection, path)
+	err = CreateDir(filepath.Join(path, collection))
 	if err != nil {
 		panic(err)
 	}

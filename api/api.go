@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	log "github.com/Sirupsen/logrus"
+	"github.com/Sirupsen/logrus"
 	recovery "github.com/albrow/negroni-json-recovery"
 	"github.com/codegangsta/negroni"
 	"github.com/gorilla/mux"
@@ -28,7 +28,7 @@ func GetJSONErrorMessage(code int, message string) []byte {
 
 // ResponseWithError send an error response with a common JSON message
 func ResponseWithError(rw http.ResponseWriter, code int, message string) {
-	log.Infof("Error response [%d] %s", code, message)
+	logrus.Infof("Error response [%d] %s", code, message)
 	rw.WriteHeader(code)
 	rw.Write([]byte(GetJSONErrorMessage(code, message)))
 }
@@ -42,9 +42,9 @@ func StartServer(cfg *model.Config) error {
 		vars := mux.Vars(r)
 		name := vars["name"]
 
-		log.Debugf("Instance req %s name:%s", r.Method, name)
+		logrus.Debugf("Instance req %s name:%s", r.Method, name)
 
-		instance := NewInstance(name, cfg)
+		instance := GetInstance(name, cfg)
 
 		instanceMustExists := func() bool {
 			exists, err := instance.Exists()
@@ -61,7 +61,7 @@ func StartServer(cfg *model.Config) error {
 
 		switch r.Method {
 		case http.MethodGet:
-			log.Debugf("Load instance %s", name)
+			logrus.Debugf("Load instance %s", name)
 
 			if !instanceMustExists() {
 				return
@@ -69,7 +69,7 @@ func StartServer(cfg *model.Config) error {
 
 			break
 		case http.MethodPost:
-			log.Debugf("Start instance %s", name)
+			logrus.Debugf("Start instance %s", name)
 
 			err := instance.Start()
 
@@ -82,7 +82,7 @@ func StartServer(cfg *model.Config) error {
 
 			break
 		case http.MethodPut:
-			log.Debugf("Restart instance %s", name)
+			logrus.Debugf("Restart instance %s", name)
 
 			if !instanceMustExists() {
 				return
@@ -98,7 +98,7 @@ func StartServer(cfg *model.Config) error {
 
 			break
 		case http.MethodDelete:
-			log.Debugf("Stop instance %s", name)
+			logrus.Debugf("Stop instance %s", name)
 
 			if !instanceMustExists() {
 				return
@@ -118,15 +118,15 @@ func StartServer(cfg *model.Config) error {
 	//ListInstancesHandler list instaces
 	var ListInstancesHandler = func(rw http.ResponseWriter, r *http.Request) {
 
-		log.Info("Fetching instances")
+		logrus.Info("Fetching instances")
 
 		list, err := ListInstances(cfg)
 		if err != nil {
-			log.Info("Panic fetching instances: %s", err)
+			logrus.Info("Panic fetching instances: %s", err)
 			panic(err)
 		}
 
-		log.Info("Fetched instances")
+		logrus.Info("Fetched instances")
 		b, err := json.Marshal(list)
 		if err != nil {
 			panic(err)
@@ -138,7 +138,7 @@ func StartServer(cfg *model.Config) error {
 
 	//AuthMiddleware API authentication
 	var AuthMiddleware = func(rw http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
-		log.Debug("Skipping authentication")
+		logrus.Debug("Skipping authentication")
 		next(rw, r)
 	}
 
@@ -153,6 +153,6 @@ func StartServer(cfg *model.Config) error {
 	v2router.Methods("GET").Path("/instances").HandlerFunc(ListInstancesHandler)
 	v2router.Methods("GET", "POST", "PUT", "DELETE").Path("/instances/{name:[A-Za-z0-9_-]+}").HandlerFunc(InstanceHandler)
 
-	log.Infof("Starting API at %s", cfg.APIPort)
+	logrus.Infof("Starting API at %s", cfg.APIPort)
 	return http.ListenAndServe(cfg.APIPort, r)
 }

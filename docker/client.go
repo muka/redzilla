@@ -1,10 +1,14 @@
 package docker
 
 import (
+	"errors"
+	"io"
+	"os"
+	"strconv"
 	"strings"
 	"time"
 
-	log "github.com/Sirupsen/logrus"
+	"github.com/Sirupsen/logrus"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/events"
@@ -12,6 +16,7 @@ import (
 	"github.com/docker/docker/client"
 	"github.com/docker/go-connections/nat"
 	"github.com/muka/redzilla/model"
+	"github.com/muka/redzilla/storage"
 	"golang.org/x/net/context"
 )
 
@@ -56,18 +61,18 @@ func ListenEvents(cfg *model.Config) <-chan ContainerEvent {
 			case event := <-msgChan:
 				if &event != nil {
 
-					log.Infof("Event recieved: %s %s ", event.Action, event.Type)
+					logrus.Infof("Event recieved: %s %s ", event.Action, event.Type)
 					if event.Actor.Attributes != nil {
 
-						// log.Infof("%s: %s | %s | %s | %s | %s", event.Actor.Attributes["name"], event.Action, event.From, event.ID, event.Status, event.Type)
+						// logrus.Infof("%s: %s | %s | %s | %s | %s", event.Actor.Attributes["name"], event.Action, event.From, event.ID, event.Status, event.Type)
 
 						name := event.Actor.Attributes["name"]
 						switch event.Action {
 						case "start":
-							log.Debugf("Container started %s", name)
+							logrus.Debugf("Container started %s", name)
 							break
 						case "die":
-							log.Debugf("Container exited %s", name)
+							logrus.Debugf("Container exited %s", name)
 							break
 						}
 
@@ -83,7 +88,7 @@ func ListenEvents(cfg *model.Config) <-chan ContainerEvent {
 				}
 			case err := <-errChan:
 				if err != nil {
-					log.Errorf("Error event recieved: %s", err.Error())
+					logrus.Errorf("Error event recieved: %s", err.Error())
 				}
 			}
 		}
@@ -109,7 +114,7 @@ func getClient() (*client.Client, error) {
 //StartContainer start a container
 func StartContainer(name string, cfg *model.Config) error {
 
-	log.Debugf("Starting docker container %s", name)
+	logrus.Debugf("Starting docker container %s", name)
 
 	cli, err := getClient()
 	if err != nil {
@@ -120,13 +125,13 @@ func StartContainer(name string, cfg *model.Config) error {
 	// options := types.ContainerStartOptions{}
 	ctx := context.Background()
 
-	log.Debugf("Pulling image %s if not available", cfg.ImageName)
+	logrus.Debugf("Pulling image %s if not available", cfg.ImageName)
 	_, err = cli.ImagePull(ctx, cfg.ImageName, types.ImagePullOptions{})
 	if err != nil {
 		return err
 	}
 
-	log.Debugf("Pulled image %s", cfg.ImageName)
+	logrus.Debugf("Pulled image %s", cfg.ImageName)
 
 	info, err := GetContainer(name)
 	if err != nil {
@@ -134,15 +139,16 @@ func StartContainer(name string, cfg *model.Config) error {
 	}
 
 	exists := info.ContainerJSONBase != nil
-	log.Debugf("Container %s exists: %t", name, exists)
+	logrus.Debugf("Container %s exists: %t", name, exists)
 
 	var containerID string
 
 	if !exists {
 
-		log.Debugf("Creating new container %s ", name)
+		logrus.Debugf("Creating new container %s ", name)
 		resp, err := cli.ContainerCreate(ctx,
 			&container.Config{
+				User:         strconv.Itoa(os.Getuid()), // avoid permission issues
 				Image:        cfg.ImageName,
 				AttachStdin:  false,
 				AttachStdout: true,
@@ -160,7 +166,7 @@ func StartContainer(name string, cfg *model.Config) error {
 			},
 			&container.HostConfig{
 				Binds: []string{
-					"/home/l/go/src/github.com/muka/redzilla/tmp/" + name + ":/data",
+					storage.GetInstancesDataPath(name, cfg) + ":/data",
 				},
 				NetworkMode: "redzilla_redzilla",
 				PortBindings: nat.PortMap{
@@ -183,36 +189,63 @@ func StartContainer(name string, cfg *model.Config) error {
 		}
 
 		containerID = resp.ID
-		log.Debugf("Created new container %s", name)
+		logrus.Debugf("Created new container %s", name)
 	} else {
 		containerID = info.ContainerJSONBase.ID
-		log.Debugf("Reusing container %s", name)
+		logrus.Debugf("Reusing container %s", name)
 	}
 
-	log.Debugf("Container %s with ID %s", name, containerID)
+	logrus.Debugf("Container %s with ID %s", name, containerID)
 
 	if err = cli.ContainerStart(ctx, containerID, types.ContainerStartOptions{}); err != nil {
 		return err
 	}
 
-	log.Debugf("Started container %s", name)
+	logrus.Debugf("Started container %s", name)
 
 	// if _, err = cli.ContainerWait(ctx, containerID); err != nil {
 	// 	return err
 	// }
 	// debug("Waited container")
 
-	// go func() {
-	// 	out, err := cli.ContainerLogs(ctx, containerID, types.ContainerLogsOptions{
-	// 		ShowStderr: true,
-	// 		ShowStdout: true,
-	// 		Follow:     true,
-	// 	})
-	// 	if err != nil {
-	// 		return
-	// 	}
-	// 	io.Copy(os.Stdout, out)
-	// }()
+	return nil
+}
+
+// ContainerWatchLogs pipe logs from the container instance
+func ContainerWatchLogs(ctx context.Context, name string, writer io.Writer) error {
+
+	cli, err := getClient()
+	if err != nil {
+		return err
+	}
+
+	info, err := GetContainer(name)
+	if err != nil {
+		return err
+	}
+	if info.ContainerJSONBase == nil {
+		return errors.New("Container not found " + name)
+	}
+
+	containerID := info.ContainerJSONBase.ID
+
+	out, err := cli.ContainerLogs(ctx, containerID, types.ContainerLogsOptions{
+		ShowStderr: true,
+		ShowStdout: true,
+		Follow:     true,
+	})
+
+	if err != nil {
+		logrus.Warnf("Failed to open logs %s: %s", name, err.Error())
+		return err
+	}
+
+	go func() {
+		// pipe stream, will stop when container stops
+		if _, err := io.Copy(writer, out); err != nil {
+			logrus.Warnf("Error copying log stream %s", name)
+		}
+	}()
 
 	return nil
 }
@@ -220,7 +253,7 @@ func StartContainer(name string, cfg *model.Config) error {
 //StopContainer stop a container
 func StopContainer(name string) error {
 
-	log.Debugf("Stopping container %s", name)
+	logrus.Debugf("Stopping container %s", name)
 
 	cli, err := getClient()
 	if err != nil {
@@ -235,7 +268,7 @@ func StopContainer(name string) error {
 	}
 
 	if info.ContainerJSONBase == nil {
-		log.Warnf("Cannot stop %s, does not exists", name)
+		logrus.Warnf("Cannot stop %s, does not exists", name)
 		return nil
 	}
 
@@ -247,7 +280,7 @@ func StopContainer(name string) error {
 		return err
 	}
 
-	log.Debugf("Stopped container %s", name)
+	logrus.Debugf("Stopped container %s", name)
 	return nil
 }
 

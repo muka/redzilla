@@ -1,15 +1,18 @@
 package api
 
 import (
+	"context"
 	"encoding/json"
 
-	log "github.com/Sirupsen/logrus"
+	"github.com/Sirupsen/logrus"
 	"github.com/muka/redzilla/docker"
 	"github.com/muka/redzilla/model"
 	"github.com/muka/redzilla/storage"
 )
 
-var instanceCollection = "instances"
+const instanceCollection = "instances"
+
+var instancesCache = make(map[string]*Instance)
 
 //ListInstances list available instances
 func ListInstances(cfg *model.Config) (*[]model.Instance, error) {
@@ -31,31 +34,79 @@ func ListInstances(cfg *model.Config) (*[]model.Instance, error) {
 		list = append(list, *item)
 	}
 
-	log.Debugf("Found %d instances", len(list))
+	logrus.Debugf("Found %d instances", len(list))
 	return &list, err
+}
+
+// GetInstance return a instance from the cache if available
+func GetInstance(name string, cfg *model.Config) *Instance {
+	if _, ok := instancesCache[name]; !ok {
+		instancesCache[name] = NewInstance(name, cfg)
+	}
+	return instancesCache[name]
 }
 
 // NewInstance new instance api
 func NewInstance(name string, cfg *model.Config) *Instance {
-	i := Instance{
-		instance: model.NewInstance(name),
-		cfg:      cfg,
-		store:    storage.GetStore(instanceCollection, cfg),
+
+	datadir := storage.GetInstancesDataPath(name, cfg)
+	storage.CreateDir(datadir)
+
+	instanceLogger, err := NewInstanceLogger(name, datadir)
+	if err != nil {
+		logrus.Errorf("Failed to initialize instance %s logger at %s", name, datadir)
+		panic(err)
 	}
+
+	i := Instance{
+		instance:   model.NewInstance(name),
+		cfg:        cfg,
+		store:      storage.GetStore(instanceCollection, cfg),
+		logger:     instanceLogger,
+		logContext: NewInstanceContext(),
+	}
+
 	return &i
+}
+
+//NewInstanceContext craeate a new instance context
+func NewInstanceContext() *InstanceContext {
+	ctx, cancel := context.WithCancel(context.Background())
+	return &InstanceContext{
+		context: ctx,
+		cancel:  cancel,
+	}
+}
+
+//InstanceContext tracks internal context for the instance
+type InstanceContext struct {
+	context context.Context
+	cancel  context.CancelFunc
+}
+
+//Cancel the instance level context
+func (c *InstanceContext) Cancel() {
+	c.cancel()
+}
+
+//GetContext return the real context reference
+func (c *InstanceContext) GetContext() context.Context {
+	return c.context
 }
 
 //Instance API
 type Instance struct {
-	instance *model.Instance
-	cfg      *model.Config
-	store    *storage.Store
+	instance   *model.Instance
+	cfg        *model.Config
+	store      *storage.Store
+	logger     *InstanceLogger
+	logContext *InstanceContext
 }
 
 //Save instance status
 func (i *Instance) Save() error {
 
-	log.Debugf("Saving instance state %s", i.instance.Name)
+	logrus.Debugf("Saving instance state %s", i.instance.Name)
 
 	err := i.store.Save(i.instance.Name, i.instance)
 	if err != nil {
@@ -68,7 +119,7 @@ func (i *Instance) Save() error {
 //Create instance without starting
 func (i *Instance) Create() error {
 
-	log.Debugf("Creating instance %s", i.instance.Name)
+	logrus.Debugf("Creating instance %s", i.instance.Name)
 
 	err := i.Save()
 	if err != nil {
@@ -81,7 +132,7 @@ func (i *Instance) Create() error {
 //Start an instance creating a record for if it does not exists
 func (i *Instance) Start() error {
 
-	log.Debugf("Starting instance %s", i.instance.Name)
+	logrus.Debugf("Starting instance %s", i.instance.Name)
 
 	err := i.Save()
 	if err != nil {
@@ -94,6 +145,18 @@ func (i *Instance) Start() error {
 	}
 
 	return nil
+}
+
+//StartLogsPipe start the container log pipe
+func (i *Instance) StartLogsPipe() error {
+	logrus.Debugf("Start log pipe for %s", i.instance.Name)
+	return docker.ContainerWatchLogs(i.logContext.GetContext(), i.instance.Name, i.logger.GetFile())
+}
+
+//StopLogsPipe stop the container log pipe
+func (i *Instance) StopLogsPipe() {
+	logrus.Debugf("Stopped log pipe for %s", i.instance.Name)
+	i.logContext.Cancel()
 }
 
 //Remove instance and stop it if running
@@ -115,7 +178,7 @@ func (i *Instance) Remove() error {
 //Stop instance without removing
 func (i *Instance) Stop() error {
 
-	log.Debugf("Stopping instance %s", i.instance.Name)
+	logrus.Debugf("Stopping instance %s", i.instance.Name)
 
 	err := docker.StopContainer(i.instance.Name)
 	if err != nil {
@@ -133,7 +196,7 @@ func (i *Instance) GetStatus() *model.Instance {
 //Exists check if the instance has been stored
 func (i *Instance) Exists() (bool, error) {
 
-	log.Debugf("Check if instance %s exists", i.instance.Name)
+	logrus.Debugf("Check if instance %s exists", i.instance.Name)
 
 	dbInstance := model.Instance{}
 	err := i.store.Load(i.instance.Name, dbInstance)
@@ -147,7 +210,7 @@ func (i *Instance) Exists() (bool, error) {
 //IsRunning check if the instance is running
 func (i *Instance) IsRunning() (bool, error) {
 
-	log.Debugf("Check if instance %s is running", i.instance.Name)
+	logrus.Debugf("Check if instance %s is running", i.instance.Name)
 
 	info, err := docker.GetContainer(i.instance.Name)
 	if err != nil {
@@ -161,4 +224,9 @@ func (i *Instance) IsRunning() (bool, error) {
 func (i *Instance) Restart() error {
 	i.Stop()
 	return i.Start()
+}
+
+//GetLogger Return the dedicated logger
+func (i *Instance) GetLogger() *logrus.Logger {
+	return i.logger.GetLogger()
 }

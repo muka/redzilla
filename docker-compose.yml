@@ -7,32 +7,22 @@ services:
     networks:
       - redzilla
     ports:
-      - "9090:80"
+      - "80:80"
       - "8080:8080"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - /dev/null:/traefik.toml
 
-  # red1:
+  #  This used to work
+  # test2:
   #   image: nodered/node-red-docker
-  #   container_name: red1
+  #   container_name: test2
   #   networks:
   #     - redzilla
   #   volumes:
-  #     - ./tmp/red1:/data
+  #     - ./data/instances/test2:/data
   #   labels:
-  #     - "traefik.backend=red1"
-  #     - "traefik.port=1880"
-  #     - "traefik.frontend.entryPoints=http"
-  # red2:
-  #   image: nodered/node-red-docker
-  #   container_name: red2
-  #   networks:
-  #     - redzilla
-  #   volumes:
-  #     - ./tmp/red2:/data
-  #   labels:
-  #     - "traefik.backend=red2"
+  #     - "traefik.backend=test2"
   #     - "traefik.port=1880"
   #     - "traefik.frontend.entryPoints=http"
 
