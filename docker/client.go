@@ -168,7 +168,7 @@ func StartContainer(name string, cfg *model.Config) error {
 				Binds: []string{
 					storage.GetInstancesDataPath(name, cfg) + ":/data",
 				},
-				NetworkMode: "redzilla_redzilla",
+				NetworkMode: container.NetworkMode(cfg.Network),
 				PortBindings: nat.PortMap{
 					"1880": []nat.PortBinding{
 						nat.PortBinding{
