@@ -9,4 +9,4 @@ docker/build:
 	docker build . -t opny/redzilla
 
 docker/push: docker/build
-	docker push -t opny/redzilla
+	docker push opny/redzilla
