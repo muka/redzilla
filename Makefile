@@ -5,8 +5,8 @@ clean:
 build:
 	CGO_ENABLED=0 go build -a -ldflags '-s' -o redzilla
 
-dockerize:
+docker/build:
 	docker build . -t opny/redzilla
 
-push: docker
+docker/push: docker/build
 	docker push -t opny/redzilla
