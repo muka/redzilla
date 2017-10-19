@@ -9,6 +9,7 @@ import (
 
 // Config stores settings for the appliance
 type Config struct {
+	Network          string `yaml:"network"`
 	APIPort          string `yaml:"api_port"`
 	TraefikHost      string `yaml:"traefik_host"`
 	ImageName        string `yaml:"image_name"`
@@ -19,6 +20,7 @@ type Config struct {
 //NewDefaultConfig return a default configuration good for all season
 func NewDefaultConfig() *Config {
 	c := &Config{
+		Network:          "redzilla_redzilla",
 		APIPort:          ":3000",
 		ImageName:        "nodered/node-red-docker",
 		StorePath:        "./data/store",
@@ -46,5 +48,8 @@ func parseEnv(c *Config) {
 
 	if os.Getenv("IMAGE") != "" {
 		c.ImageName = os.Getenv("IMAGE")
+	}
+	if os.Getenv("NETWORK") != "" {
+		c.Network = os.Getenv("NETWORK")
 	}
 }
