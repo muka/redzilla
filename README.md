@@ -21,6 +21,14 @@ Open in the browser
 
 Done!
 
+Configuration
+---
+
+Environment variables
+
+- `PORT` changes the port to listen for
+- `IMAGE` changes the `node-red` image to be spawn (must be somehow compatible to the official one)
+
 API
 ---
 
