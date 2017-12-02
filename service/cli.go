@@ -11,7 +11,6 @@ import (
 func Start(cfg *model.Config) error {
 
 	msg := docker.ListenEvents(cfg)
-
 	go func() {
 		for {
 			select {
@@ -24,6 +23,7 @@ func Start(cfg *model.Config) error {
 					logrus.Errorf("Failed loading instance %s", ev.Name)
 					continue
 				}
+
 				if !exists {
 					continue
 				}
@@ -31,13 +31,26 @@ func Start(cfg *model.Config) error {
 				switch ev.Action {
 				case "die":
 					logrus.Warnf("Container exited %s", ev.Name)
+
 					instance.StopLogsPipe()
+
+					//reset cached informations
+					rerr := instance.Reset()
+					if rerr != nil {
+						logrus.Warnf("Failed to reset detail for %s: %s", instance.GetStatus().Name, rerr.Error())
+					}
+
 					break
 				case "start":
 					err = instance.StartLogsPipe()
 					if err != nil {
 						logrus.Warnf("Cannot start logs pipe for %s: %s", ev.Name, err.Error())
 					}
+
+					//cache container IP
+					instance.GetIP()
+					instance.GetStatus().Status = model.InstanceStarted
+
 					break
 				default:
 					logrus.Infof("Container %s %s", ev.Action, ev.Name)
@@ -49,7 +62,7 @@ func Start(cfg *model.Config) error {
 		}
 	}()
 
-	err := api.StartServer(cfg)
+	err := api.Start(cfg)
 	if err != nil {
 		return err
 	}

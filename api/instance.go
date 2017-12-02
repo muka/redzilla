@@ -66,6 +66,9 @@ func NewInstance(name string, cfg *model.Config) *Instance {
 		logContext: NewInstanceContext(),
 	}
 
+	// TODO add support to port mapping (eg. MQTT)
+	i.instance.Port = NodeRedPort
+
 	return &i
 }
 
@@ -210,14 +213,23 @@ func (i *Instance) Exists() (bool, error) {
 //IsRunning check if the instance is running
 func (i *Instance) IsRunning() (bool, error) {
 
-	logrus.Debugf("Check if instance %s is running", i.instance.Name)
+	if i.instance.Status == model.InstanceStarted {
+		return true, nil
+	}
 
 	info, err := docker.GetContainer(i.instance.Name)
 	if err != nil {
 		return false, err
 	}
 
-	return info.ContainerJSONBase != nil, nil
+	running := info.ContainerJSONBase != nil
+	if running {
+		i.instance.Status = model.InstanceStarted
+	} else {
+		i.instance.Status = model.InstanceStopped
+	}
+
+	return running, nil
 }
 
 //Restart instance

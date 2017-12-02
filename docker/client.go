@@ -5,7 +5,6 @@ import (
 	"io"
 	"os"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/Sirupsen/logrus"
@@ -17,6 +16,7 @@ import (
 	"github.com/docker/go-connections/nat"
 	"github.com/muka/redzilla/model"
 	"github.com/muka/redzilla/storage"
+
 	"golang.org/x/net/context"
 )
 
@@ -158,10 +158,7 @@ func StartContainer(name string, cfg *model.Config) error {
 					"1880/tcp": {},
 				},
 				Labels: map[string]string{
-					"redzilla":                     "1",
-					"traefik.backend":              name,
-					"traefik.port":                 "1880",
-					"traefik.frontend.entryPoints": "http",
+					"redzilla": "1",
 				},
 			},
 			&container.HostConfig{
@@ -290,6 +287,10 @@ func GetContainer(name string) (*types.ContainerJSON, error) {
 	ctx := context.Background()
 	emptyJSON := &types.ContainerJSON{}
 
+	if len(name) == 0 {
+		return emptyJSON, errors.New("GetContainer(): name is empty")
+	}
+
 	cli, err := getClient()
 	if err != nil {
 		return emptyJSON, err
@@ -297,11 +298,30 @@ func GetContainer(name string) (*types.ContainerJSON, error) {
 
 	json, err := cli.ContainerInspect(ctx, name)
 	if err != nil {
-		if strings.Contains(err.Error(), "No such container") {
+		if client.IsErrNotFound(err) {
 			return emptyJSON, nil
 		}
 		return emptyJSON, err
 	}
 
 	return &json, nil
+}
+
+//GetNetwork inspect a network by networkID
+func GetNetwork(networkID string) (*types.NetworkResource, error) {
+
+	n := types.NetworkResource{}
+
+	cli, err := getClient()
+	if err != nil {
+		return &n, err
+	}
+
+	ctx := context.Background()
+	n, err = cli.NetworkInspect(ctx, networkID, types.NetworkInspectOptions{})
+	if err != nil {
+		return &n, err
+	}
+
+	return &n, nil
 }

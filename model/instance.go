@@ -9,9 +9,9 @@ var (
 	//InstanceDied not runnig due to failure
 	InstanceDied InstanceStatus
 	//InstanceStopped stopped by request
-	InstanceStopped = 10
-	//InstanceStarted started and running
-	InstanceStarted = 20
+	InstanceStopped = InstanceStatus(10)
+	//InstanceStarted started
+	InstanceStarted = InstanceStatus(20)
 )
 
 //NewInstance return a new json instance
@@ -19,6 +19,7 @@ func NewInstance(name string) *Instance {
 	return &Instance{
 		Name:    name,
 		Created: time.Now(),
+		Status:  InstanceStopped,
 	}
 }
 
@@ -28,4 +29,6 @@ type Instance struct {
 	ID      string
 	Created time.Time
 	Status  InstanceStatus
+	IP      string
+	Port    string
 }

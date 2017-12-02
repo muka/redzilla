@@ -11,7 +11,7 @@ import (
 type Config struct {
 	Network          string `yaml:"network"`
 	APIPort          string `yaml:"api_port"`
-	TraefikHost      string `yaml:"traefik_host"`
+	Domain           string `yaml:"domain"`
 	ImageName        string `yaml:"image_name"`
 	StorePath        string `yaml:"store_path"`
 	InstanceDataPath string `yaml:"instance_data_path"`
@@ -20,8 +20,9 @@ type Config struct {
 //NewDefaultConfig return a default configuration good for all season
 func NewDefaultConfig() *Config {
 	c := &Config{
-		Network:          "redzilla_redzilla",
+		Network:          "redzilla",
 		APIPort:          ":3000",
+		Domain:           "redzilla.localhost",
 		ImageName:        "nodered/node-red-docker",
 		StorePath:        "./data/store",
 		InstanceDataPath: "./data/instances",
@@ -41,15 +42,16 @@ func NewFromFile(filename string) (Config, error) {
 }
 
 func parseEnv(c *Config) {
-
 	if os.Getenv("PORT") != "" {
 		c.APIPort = os.Getenv("PORT")
 	}
-
 	if os.Getenv("IMAGE") != "" {
 		c.ImageName = os.Getenv("IMAGE")
 	}
 	if os.Getenv("NETWORK") != "" {
 		c.Network = os.Getenv("NETWORK")
+	}
+	if os.Getenv("DOMAIN") != "" {
+		c.Domain = os.Getenv("DOMAIN")
 	}
 }

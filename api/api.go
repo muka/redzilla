@@ -1,15 +1,15 @@
 package api
 
 import (
-	"encoding/json"
 	"net/http"
 
 	"github.com/Sirupsen/logrus"
-	recovery "github.com/albrow/negroni-json-recovery"
-	"github.com/codegangsta/negroni"
-	"github.com/gorilla/mux"
+	"github.com/gin-gonic/gin"
 	"github.com/muka/redzilla/model"
 )
+
+//NodeRedPort default internal node red port
+const NodeRedPort = "1880"
 
 // JSONError a JSON response in case of error
 type JSONError struct {
@@ -17,142 +17,137 @@ type JSONError struct {
 	Message string `json:"message"`
 }
 
-// GetJSONErrorMessage produce a JSON error message
-func GetJSONErrorMessage(code int, message string) []byte {
-	res, err := json.Marshal(JSONError{code, message})
+// errorResponse send an error response with a common JSON message
+func errorResponse(c *gin.Context, code int, message string) {
+	c.JSON(code, JSONError{code, message})
+}
+
+func internalError(c *gin.Context, err error) {
+	logrus.Errorf("Internal Error: %s", err.Error())
+	logrus.Debugf("%+v", err)
+	code := http.StatusInternalServerError
+	errorResponse(c, code, http.StatusText(code))
+}
+
+func notFound(c *gin.Context) {
+	code := http.StatusNotFound
+	errorResponse(c, code, http.StatusText(code))
+}
+
+func instanceExists(c *gin.Context, instance *Instance) bool {
+
+	exists, err := instance.Exists()
 	if err != nil {
-		panic(err)
+		internalError(c, err)
+		return false
 	}
-	return res
+
+	if !exists {
+		notFound(c)
+		return false
+	}
+
+	return true
 }
 
-// ResponseWithError send an error response with a common JSON message
-func ResponseWithError(rw http.ResponseWriter, code int, message string) {
-	logrus.Infof("Error response [%d] %s", code, message)
-	rw.WriteHeader(code)
-	rw.Write([]byte(GetJSONErrorMessage(code, message)))
-}
+//Start start API HTTP server
+func Start(cfg *model.Config) error {
 
-//StartServer start API HTTP server
-func StartServer(cfg *model.Config) error {
+	router := gin.Default()
 
-	//InstanceHandler handle instance operations
-	var InstanceHandler = func(rw http.ResponseWriter, r *http.Request) {
+	v2 := router.Group("/v2", func(c *gin.Context) {
 
-		vars := mux.Vars(r)
-		name := vars["name"]
-
-		logrus.Debugf("Instance req %s name:%s", r.Method, name)
-
-		instance := GetInstance(name, cfg)
-
-		instanceMustExists := func() bool {
-			exists, err := instance.Exists()
-			if err != nil {
-				ResponseWithError(rw, 500, err.Error())
-				return false
-			}
-			if !exists {
-				ResponseWithError(rw, 404, "Not found")
-				return false
-			}
-			return true
+		// handle only on main domain
+		if c.Request.Host == cfg.Domain {
+			c.Next()
+			return
 		}
 
-		switch r.Method {
+		// handle with proxy
+		c.Abort()
+	})
+
+	v2.GET("/instances", func(c *gin.Context) {
+		list, err := ListInstances(cfg)
+		if err != nil {
+			internalError(c, err)
+			return
+		}
+		c.JSON(http.StatusOK, list)
+	})
+
+	v2.Any("/instances/:name", func(c *gin.Context) {
+
+		name := c.Param("name")
+
+		instance := GetInstance(name, cfg)
+		if instance == nil {
+			notFound(c)
+			return
+		}
+
+		switch c.Request.Method {
 		case http.MethodGet:
 			logrus.Debugf("Load instance %s", name)
 
-			if !instanceMustExists() {
+			if !instanceExists(c, instance) {
 				return
 			}
+
+			c.Status(http.StatusOK)
 
 			break
 		case http.MethodPost:
 			logrus.Debugf("Start instance %s", name)
 
 			err := instance.Start()
-
 			if err != nil {
-				ResponseWithError(rw, 500, err.Error())
+				internalError(c, err)
 				return
 			}
 
-			rw.WriteHeader(202)
+			c.Status(http.StatusAccepted)
 
 			break
 		case http.MethodPut:
 			logrus.Debugf("Restart instance %s", name)
 
-			if !instanceMustExists() {
+			if !instanceExists(c, instance) {
 				return
 			}
 
 			err := instance.Restart()
 			if err != nil {
-				ResponseWithError(rw, 500, err.Error())
+				internalError(c, err)
 				return
 			}
 
-			rw.WriteHeader(202)
+			c.Status(http.StatusAccepted)
 
 			break
 		case http.MethodDelete:
 			logrus.Debugf("Stop instance %s", name)
 
-			if !instanceMustExists() {
+			if !instanceExists(c, instance) {
 				return
 			}
 
 			err := instance.Stop()
 			if err != nil {
-				ResponseWithError(rw, 500, err.Error())
+				errorResponse(c, http.StatusInternalServerError, err.Error())
 				return
 			}
 
-			rw.WriteHeader(202)
+			c.Status(http.StatusAccepted)
+
 			break
 		}
-	}
 
-	//ListInstancesHandler list instaces
-	var ListInstancesHandler = func(rw http.ResponseWriter, r *http.Request) {
+	})
 
-		logrus.Info("Fetching instances")
-
-		list, err := ListInstances(cfg)
-		if err != nil {
-			logrus.Info("Panic fetching instances: %s", err)
-			panic(err)
-		}
-
-		logrus.Info("Fetched instances")
-		b, err := json.Marshal(list)
-		if err != nil {
-			panic(err)
-		}
-
-		rw.Header().Add("content-type", "application/json")
-		rw.Write(b)
-	}
-
-	//AuthMiddleware API authentication
-	var AuthMiddleware = func(rw http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
-		logrus.Debug("Skipping authentication")
-		next(rw, r)
-	}
-
-	r := mux.NewRouter().StrictSlash(false)
-
-	v2router := r.PathPrefix("/v2").Handler(negroni.New(
-		recovery.JSONRecovery(true),
-		negroni.HandlerFunc(AuthMiddleware),
-		// negroni.NewLogger(),
-	)).Subrouter()
-
-	v2router.Methods("GET").Path("/instances").HandlerFunc(ListInstancesHandler)
-	v2router.Methods("GET", "POST", "PUT", "DELETE").Path("/instances/{name:[A-Za-z0-9_-]+}").HandlerFunc(InstanceHandler)
+	// reverse proxy
+	router.Use(proxyHandler(cfg))
 
 	logrus.Infof("Starting API at %s", cfg.APIPort)
-	return http.ListenAndServe(cfg.APIPort, r)
+	return router.Run(cfg.APIPort)
 }

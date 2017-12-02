@@ -1,5 +1,6 @@
 api_port: :3000
-traefik_host:
+domain: redzilla.localhost
+network: redzilla
 image_name: nodered/node-red-docker
 store_path: ./data/store
 instance_data_path: ./data/instances
