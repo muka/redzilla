@@ -1,49 +1,20 @@
 version: '2'
 
 services:
-  proxy:
-    image: traefik
-    command: --web --docker --docker.watch --docker.domain=localhost --logLevel=DEBUG --entryPoints="Name:http Address::80"
-    networks:
-      - redzilla
-      - webproxy
-    ports:
-      - "80:80"
-      - "8080:8080"
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-      - /dev/null:/traefik.toml
 
   redzilla:
     image: opny/redzilla
-    container_name: redzilla
+    environment:
+      NETWORK: redzilla_redzilla
+      DOMAIN: redzilla.localhost
     networks:
       - redzilla
     ports:
-      - "3000:3000"
+      - 3000:3000
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./data:/data
-    labels:
-      - "traefik.backend=redzilla"
-      - "traefik.port=3000"
-      - "traefik.frontend.entryPoints=http"
-
-  #  This used to work
-  # test2:
-  #   image: nodered/node-red-docker
-  #   container_name: test2
-  #   networks:
-  #     - redzilla
-  #   volumes:
-  #     - ./data/instances/test2:/data
-  #   labels:
-  #     - "traefik.backend=test2"
-  #     - "traefik.port=1880"
-  #     - "traefik.frontend.entryPoints=http"
 
 networks:
-  webproxy:
-    driver: bridge
   redzilla:
     driver: bridge

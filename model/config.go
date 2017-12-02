@@ -27,6 +27,10 @@ func NewDefaultConfig() *Config {
 		StorePath:        "./data/store",
 		InstanceDataPath: "./data/instances",
 	}
+
+	//override with env
+	parseEnv(c)
+
 	return c
 }
 
@@ -38,6 +42,10 @@ func NewFromFile(filename string) (Config, error) {
 		return c, err
 	}
 	err = yaml.Unmarshal([]byte(data), &c)
+
+	//override with env
+	parseEnv(&c)
+
 	return c, err
 }
 
