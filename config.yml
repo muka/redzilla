@@ -1,0 +1,8 @@
+
+Network: redzilla
+APIPort: :3000
+Domain: redzilla.localhost
+ImageName: nodered/node-red-docker
+StorePath: ./data/store
+InstanceDataPath: ./data/instances
+LogLevel: info

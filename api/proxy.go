@@ -83,9 +83,7 @@ func proxyHandler(cfg *model.Config) func(c *gin.Context) {
 	reverseProxy = newReverseProxy(cfg)
 	return func(c *gin.Context) {
 
-		hostname := c.Request.Host[:strings.Index(c.Request.Host, ":")]
-
-		name := strings.Replace(hostname, "."+cfg.Domain, "", -1)
+		name := extractSubdomain(c.Request.Host, cfg)
 		if len(name) == 0 {
 			logrus.Debugf("Empty subdomain name at %s", c.Request.URL.String())
 			notFound(c)

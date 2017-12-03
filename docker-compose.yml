@@ -5,8 +5,9 @@ services:
   redzilla:
     image: opny/redzilla
     environment:
-      NETWORK: redzilla_redzilla
-      DOMAIN: redzilla.localhost
+      # default compose network name
+      REDZILLA_NETWORK: redzilla_redzilla
+      REDZILLA_DOMAIN: redzilla.localhost
     networks:
       - redzilla
     ports:

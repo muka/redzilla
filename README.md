@@ -26,10 +26,13 @@ Configuration
 
 Environment variables
 
-- `PORT` changes the API host:port to listen for. Default to `:3000`
-- `IMAGE` changes the `node-red` image to be spawn (must be somehow compatible to the official one). Default to `node-red/node-red-docker`
-- `NETWORK` set the network where node-red instances will run. Default to `redzilla`
-- `DOMAIN` set the base domain to listen for. Default to `redzilla.localhost`
+`REDZILLA_NETWORK` (default: `redzilla`) set the network where node-red instances will run
+`REDZILLA_APIPORT` (default: `:3000`)  changes the API host:port to listen for
+`REDZILLA_DOMAIN` (default: `redzilla.localhost`) set the base domain to listen for
+`REDZILLA_IMAGENAME` (default: `nodered/node-red-docker`) changes the `node-red` image to be spawn (must be somehow compatible to the official one)
+`REDZILLA_STOREPATH` (default: `./data/store`) file store for the container runtime metadata
+`REDZILLA_INSTANCEDATAPATH` (default: `./data/instances`) container instaces data (like setting.js and flows.json)
+`REDZILLA_LOGLEVEL` (default: `info`) log level detail
 
 API
 ---

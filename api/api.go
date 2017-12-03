@@ -11,29 +11,6 @@ import (
 //NodeRedPort default internal node red port
 const NodeRedPort = "1880"
 
-// JSONError a JSON response in case of error
-type JSONError struct {
-	Code    int    `json:"code"`
-	Message string `json:"message"`
-}
-
-// errorResponse send an error response with a common JSON message
-func errorResponse(c *gin.Context, code int, message string) {
-	c.JSON(code, JSONError{code, message})
-}
-
-func internalError(c *gin.Context, err error) {
-	logrus.Errorf("Internal Error: %s", err.Error())
-	logrus.Debugf("%+v", err)
-	code := http.StatusInternalServerError
-	errorResponse(c, code, http.StatusText(code))
-}
-
-func notFound(c *gin.Context) {
-	code := http.StatusNotFound
-	errorResponse(c, code, http.StatusText(code))
-}
-
 func instanceExists(c *gin.Context, instance *Instance) bool {
 
 	exists, err := instance.Exists()
