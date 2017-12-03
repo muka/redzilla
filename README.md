@@ -25,12 +25,21 @@ Done!
 Environment variables
 
 `REDZILLA_NETWORK` (default: `redzilla`) set the network where node-red instances will run
+
 `REDZILLA_APIPORT` (default: `:3000`)  changes the API host:port to listen for
+
 `REDZILLA_DOMAIN` (default: `redzilla.localhost`) set the base domain to listen for
+
 `REDZILLA_IMAGENAME` (default: `nodered/node-red-docker`) changes the `node-red` image to be spawn (must be somehow compatible to the official one)
+
 `REDZILLA_STOREPATH` (default: `./data/store`) file store for the container runtime metadata
+
 `REDZILLA_INSTANCEDATAPATH` (default: `./data/instances`) container instaces data (like setting.js and flows.json)
+
 `REDZILLA_LOGLEVEL` (default: `info`) log level detail
+
+`REDZILLA_AUTOSTART` (default: `false`) allow to create a new instance when reaching an activable subdomain
+
 `REDZILLA_CONFIG` load a configuration file (see `config.example.yml` for reference)
 
 ## API

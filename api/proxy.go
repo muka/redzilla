@@ -106,10 +106,12 @@ func proxyHandler(cfg *model.Config) func(c *gin.Context) {
 
 		if !running {
 			logrus.Debugf("Container %s not running", name)
-			err := instance.Start()
-			if err != nil {
-				internalError(c, err)
-				return
+			if cfg.Autostart {
+				serr := instance.Start()
+				if serr != nil {
+					internalError(c, serr)
+					return
+				}
 			}
 		}
 

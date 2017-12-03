@@ -19,6 +19,7 @@ func main() {
 	viper.SetDefault("StorePath", "./data/store")
 	viper.SetDefault("InstanceDataPath", "./data/instances")
 	viper.SetDefault("LogLevel", "info")
+	viper.SetDefault("Autostart", false)
 
 	viper.SetEnvPrefix("redzilla")
 	viper.AutomaticEnv()
@@ -44,6 +45,7 @@ func main() {
 		StorePath:        viper.GetString("StorePath"),
 		InstanceDataPath: viper.GetString("InstanceDataPath"),
 		LogLevel:         viper.GetString("LogLevel"),
+		Autostart:        viper.GetBool("Autostart"),
 	}
 
 	lvl, err := logrus.ParseLevel(cfg.LogLevel)
