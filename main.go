@@ -26,8 +26,10 @@ func main() {
 	if os.Getenv("CONFIG") != "" {
 		viper.AddConfigPath(os.Getenv("CONFIG"))
 	} else {
-		viper.SetConfigName("config")
-		viper.AddConfigPath(".")
+		if _, err := os.Stat("./config.yml"); !os.IsNotExist(err) {
+			viper.SetConfigName("config")
+			viper.AddConfigPath(".")
+		}
 	}
 
 	err := viper.ReadInConfig()
