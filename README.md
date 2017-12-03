@@ -4,8 +4,7 @@
 
 Currently uses docker and traefik to create a scalable yet configurable service.
 
-Usage
----
+## Usage
 
 Start the service with `docker-compose`, in this example it will run on port `3000`
 
@@ -21,8 +20,7 @@ Open in the browser
 
 Done!
 
-Configuration
----
+## Configuration
 
 Environment variables
 
@@ -33,9 +31,9 @@ Environment variables
 `REDZILLA_STOREPATH` (default: `./data/store`) file store for the container runtime metadata
 `REDZILLA_INSTANCEDATAPATH` (default: `./data/instances`) container instaces data (like setting.js and flows.json)
 `REDZILLA_LOGLEVEL` (default: `info`) log level detail
+`REDZILLA_CONFIG` load a configuration file (see `config.example.yml` for reference)
 
-API
----
+## API
 
 API is temporary and subject to change
 
@@ -55,17 +53,10 @@ Stop an instance
 
   `curl -X DELETE http://redzilla.localhost:3000/v2/instances/instance-name`
 
-Prerequisites
----
+## Prerequisites
 
 To run `redzilla` you need `docker` and `docker-compose` installed.
 
-For example on a recent ubuntu linux
-
-- Install docker `wget -qO- https://get.docker.com/ | sh`
-- Install docker-compose `sudo apt-get install python-pip -y && sudo pip install docker-compose`
-
-License
----
+## License
 
 The MIT license. See `LICENSE` file for details

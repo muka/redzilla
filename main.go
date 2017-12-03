@@ -23,18 +23,17 @@ func main() {
 	viper.SetEnvPrefix("redzilla")
 	viper.AutomaticEnv()
 
-	if os.Getenv("CONFIG") != "" {
-		viper.AddConfigPath(os.Getenv("CONFIG"))
-	} else {
-		if _, err := os.Stat("./config.yml"); !os.IsNotExist(err) {
-			viper.SetConfigName("config")
-			viper.AddConfigPath(".")
-		}
+	configFile := "./config.yml"
+	if os.Getenv("REDZILLA_CONFIG") != "" {
+		configFile = os.Getenv("REDZILLA_CONFIG")
 	}
 
-	err := viper.ReadInConfig()
-	if err != nil {
-		panic(fmt.Errorf("Failed to read from config file: %s", err))
+	if _, err := os.Stat(configFile); !os.IsNotExist(err) {
+		viper.SetConfigFile(configFile)
+		err := viper.ReadInConfig()
+		if err != nil {
+			panic(fmt.Errorf("Failed to read from config file: %s", err))
+		}
 	}
 
 	cfg := &model.Config{
