@@ -10,4 +10,5 @@ type Config struct {
 	InstanceDataPath string
 	LogLevel         string
 	Autostart        bool
+	EnvPrefix        string
 }

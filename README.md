@@ -40,6 +40,8 @@ Environment variables
 
 `REDZILLA_AUTOSTART` (default: `false`) allow to create a new instance when reaching an activable subdomain
 
+`REDZILLA_ENVPREFIX` (empty by default) filter environment variables by prefix and pass to the created instance. Empty means no ENV are passed. The `${PREFIX}_` string will be removed from the variable name before passing to the instance.
+
 `REDZILLA_CONFIG` load a configuration file (see `config.example.yml` for reference)
 
 ## API

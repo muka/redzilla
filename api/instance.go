@@ -3,6 +3,7 @@ package api
 import (
 	"context"
 	"encoding/json"
+	"os"
 
 	"github.com/Sirupsen/logrus"
 	"github.com/muka/redzilla/docker"
@@ -204,6 +205,9 @@ func (i *Instance) Exists() (bool, error) {
 	dbInstance := model.Instance{}
 	err := i.store.Load(i.instance.Name, dbInstance)
 	if err != nil {
+		if os.IsNotExist(err) {
+			return false, nil
+		}
 		return false, err
 	}
 

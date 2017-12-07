@@ -6,3 +6,4 @@ ImageName: nodered/node-red-docker
 StorePath: ./data/store
 InstanceDataPath: ./data/instances
 LogLevel: info
+EnvPrefix: 

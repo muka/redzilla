@@ -20,6 +20,7 @@ func main() {
 	viper.SetDefault("InstanceDataPath", "./data/instances")
 	viper.SetDefault("LogLevel", "info")
 	viper.SetDefault("Autostart", false)
+	viper.SetDefault("EnvPrefix", "")
 
 	viper.SetEnvPrefix("redzilla")
 	viper.AutomaticEnv()
@@ -46,6 +47,7 @@ func main() {
 		InstanceDataPath: viper.GetString("InstanceDataPath"),
 		LogLevel:         viper.GetString("LogLevel"),
 		Autostart:        viper.GetBool("Autostart"),
+		EnvPrefix:        viper.GetString("EnvPrefix"),
 	}
 
 	lvl, err := logrus.ParseLevel(cfg.LogLevel)
@@ -53,6 +55,8 @@ func main() {
 		panic(fmt.Errorf("Failed to parse level %s: %s", cfg.LogLevel, err))
 	}
 	logrus.SetLevel(lvl)
+
+	logrus.Debugf("%++v", cfg)
 
 	defer service.Stop(cfg)
 

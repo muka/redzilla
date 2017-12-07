@@ -5,6 +5,7 @@ import (
 	"io"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/Sirupsen/logrus"
@@ -111,6 +112,37 @@ func getClient() (*client.Client, error) {
 	return dockerClient, nil
 }
 
+func extractEnv(cfg *model.Config) []string {
+
+	env := make([]string, 0)
+
+	vars := os.Environ()
+
+	envPrefix := strings.ToLower(cfg.EnvPrefix)
+	pl := len(envPrefix)
+
+	if pl > 0 {
+		for _, e := range vars {
+
+			if pl > 0 {
+				if pl > len(e) {
+					continue
+				}
+				if strings.ToLower(e[0:pl]) != envPrefix {
+					continue
+				}
+			}
+
+			//removed PREFIX_
+			envVar := e[pl+1:]
+			env = append(env, envVar)
+		}
+
+	}
+
+	return env
+}
+
 //StartContainer start a container
 func StartContainer(name string, cfg *model.Config) error {
 
@@ -160,6 +192,7 @@ func StartContainer(name string, cfg *model.Config) error {
 				Labels: map[string]string{
 					"redzilla": "1",
 				},
+				Env: extractEnv(cfg),
 			},
 			&container.HostConfig{
 				Binds: []string{

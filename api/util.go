@@ -32,6 +32,11 @@ func notFound(c *gin.Context) {
 	errorResponse(c, code, http.StatusText(code))
 }
 
+func badRequest(c *gin.Context) {
+	code := http.StatusNotFound
+	errorResponse(c, code, http.StatusText(code))
+}
+
 func extractSubdomain(host string, cfg *model.Config) string {
 	if len(host) == 0 {
 		return ""

@@ -2,6 +2,7 @@ package api
 
 import (
 	"net/http"
+	"strings"
 
 	"github.com/Sirupsen/logrus"
 	"github.com/gin-gonic/gin"
@@ -34,8 +35,14 @@ func Start(cfg *model.Config) error {
 
 	v2 := router.Group("/v2", func(c *gin.Context) {
 
+		host := c.Request.Host
+		portIdx := strings.Index(c.Request.Host, ":")
+		if portIdx > -1 {
+			host = c.Request.Host[0:portIdx]
+		}
+
 		// handle only on main domain
-		if c.Request.Host == cfg.Domain {
+		if host == cfg.Domain {
 			c.Next()
 			return
 		}
@@ -44,16 +51,9 @@ func Start(cfg *model.Config) error {
 		c.Abort()
 	})
 
-	v2.GET("/instances", func(c *gin.Context) {
-		list, err := ListInstances(cfg)
-		if err != nil {
-			internalError(c, err)
-			return
-		}
-		c.JSON(http.StatusOK, list)
-	})
-
 	v2.Any("/instances/:name", func(c *gin.Context) {
+
+		logrus.Debug("Api call", c.Request.Method, c.Request.URL.Path)
 
 		name := c.Param("name")
 
@@ -62,6 +62,8 @@ func Start(cfg *model.Config) error {
 			notFound(c)
 			return
 		}
+
+		logrus.Debugf("Got %s %s", c.Request.Method, name)
 
 		switch c.Request.Method {
 		case http.MethodGet:
@@ -75,6 +77,7 @@ func Start(cfg *model.Config) error {
 
 			break
 		case http.MethodPost:
+
 			logrus.Debugf("Start instance %s", name)
 
 			err := instance.Start()
@@ -118,8 +121,20 @@ func Start(cfg *model.Config) error {
 			c.Status(http.StatusAccepted)
 
 			break
+		default:
+			badRequest(c)
+			break
 		}
 
+	})
+
+	v2.GET("/instances", func(c *gin.Context) {
+		list, err := ListInstances(cfg)
+		if err != nil {
+			internalError(c, err)
+			return
+		}
+		c.JSON(http.StatusOK, list)
 	})
 
 	// reverse proxy
