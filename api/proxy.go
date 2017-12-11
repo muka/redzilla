@@ -90,7 +90,7 @@ func proxyHandler(cfg *model.Config) func(c *gin.Context) {
 			return
 		}
 
-		logrus.Debugf("Proxying %s name=%s ", c.Request.URL, name)
+		// logrus.Debugf("Proxying %s name=%s ", c.Request.URL, name)
 
 		instance := GetInstance(name, cfg)
 		if instance == nil {
