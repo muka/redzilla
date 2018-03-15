@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/http/httputil"
 	"strings"
+	"time"
 
 	"github.com/Sirupsen/logrus"
 	"github.com/gin-gonic/gin"
@@ -57,6 +58,36 @@ func newReverseProxy(cfg *model.Config) *httputil.ReverseProxy {
 	director := func(req *http.Request) {}
 	return &httputil.ReverseProxy{
 		Director: director,
+		Transport: &http.Transport{
+			// Proxy: func(req *http.Request) (*url.URL, error) {
+			// 	return http.ProxyFromEnvironment(req)
+			// },
+			Dial: func(network, addr string) (net.Conn, error) {
+
+				maxTries := 3
+				waitFor := time.Millisecond * time.Duration(1000)
+
+				var err error
+				var conn net.Conn
+				for tries := 0; tries < maxTries; tries++ {
+
+					conn, err = (&net.Dialer{
+						Timeout:   30 * time.Second,
+						KeepAlive: 30 * time.Second,
+					}).Dial(network, addr)
+
+					if err != nil {
+						logrus.Warnf("Dial failed, retrying (%s)", err.Error())
+						time.Sleep(waitFor)
+						continue
+					}
+
+					break
+				}
+				return conn, err
+			},
+			// TLSHandshakeTimeout: 10 * time.Second,
+		},
 	}
 }
 
