@@ -44,6 +44,15 @@ func GetInstancesDataPath(name string, cfg *model.Config) string {
 	return filepath.Join(path, name)
 }
 
+// GetConfigPath return the path where shared config is stored
+func GetConfigPath(cfg *model.Config) string {
+	path, err := filepath.Abs(cfg.InstanceConfigPath)
+	if err != nil {
+		panic(err)
+	}
+	return path
+}
+
 // GetStorePath return the path where instance data is stored
 func GetStorePath(name string, cfg *model.Config) string {
 	path, err := filepath.Abs(cfg.StorePath)

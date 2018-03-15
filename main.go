@@ -18,6 +18,7 @@ func main() {
 	viper.SetDefault("ImageName", "nodered/node-red-docker")
 	viper.SetDefault("StorePath", "./data/store")
 	viper.SetDefault("InstanceDataPath", "./data/instances")
+	viper.SetDefault("InstanceConfigPath", "./data/config")
 	viper.SetDefault("LogLevel", "info")
 	viper.SetDefault("Autostart", false)
 	viper.SetDefault("EnvPrefix", "")
@@ -39,15 +40,16 @@ func main() {
 	}
 
 	cfg := &model.Config{
-		Network:          viper.GetString("Network"),
-		APIPort:          viper.GetString("APIPort"),
-		Domain:           viper.GetString("Domain"),
-		ImageName:        viper.GetString("ImageName"),
-		StorePath:        viper.GetString("StorePath"),
-		InstanceDataPath: viper.GetString("InstanceDataPath"),
-		LogLevel:         viper.GetString("LogLevel"),
-		Autostart:        viper.GetBool("Autostart"),
-		EnvPrefix:        viper.GetString("EnvPrefix"),
+		Network:            viper.GetString("Network"),
+		APIPort:            viper.GetString("APIPort"),
+		Domain:             viper.GetString("Domain"),
+		ImageName:          viper.GetString("ImageName"),
+		StorePath:          viper.GetString("StorePath"),
+		InstanceDataPath:   viper.GetString("InstanceDataPath"),
+		InstanceConfigPath: viper.GetString("InstanceConfigPath"),
+		LogLevel:           viper.GetString("LogLevel"),
+		Autostart:          viper.GetBool("Autostart"),
+		EnvPrefix:          viper.GetString("EnvPrefix"),
 	}
 
 	lvl, err := logrus.ParseLevel(cfg.LogLevel)

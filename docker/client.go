@@ -1,6 +1,7 @@
 package docker
 
 import (
+	"bufio"
 	"errors"
 	"io"
 	"os"
@@ -177,8 +178,28 @@ func StartContainer(name string, cfg *model.Config) error {
 
 	if !exists {
 
+		labels := map[string]string{
+			"redzilla":          "1",
+			"redzilla_instance": "redzilla_" + name,
+		}
+		exposedPorts := map[nat.Port]struct{}{
+			"1880/tcp": {},
+		}
+
+		instanceConfigPath := storage.GetConfigPath(cfg)
+		instanceDataPath := storage.GetInstancesDataPath(name, cfg)
+		binds := []string{
+			instanceDataPath + ":/data",
+			instanceConfigPath + ":/config",
+		}
+
+		envVars := extractEnv(cfg)
+
 		logrus.Debugf("Creating new container %s ", name)
-		resp, err := cli.ContainerCreate(ctx,
+		logrus.Debugf("Bind paths: %v", binds)
+		logrus.Debugf("Env: %v", envVars)
+
+		resp, err1 := cli.ContainerCreate(ctx,
 			&container.Config{
 				User:         strconv.Itoa(os.Getuid()), // avoid permission issues
 				Image:        cfg.ImageName,
@@ -186,18 +207,12 @@ func StartContainer(name string, cfg *model.Config) error {
 				AttachStdout: true,
 				AttachStderr: true,
 				Tty:          true,
-				ExposedPorts: map[nat.Port]struct{}{
-					"1880/tcp": {},
-				},
-				Labels: map[string]string{
-					"redzilla": "1",
-				},
-				Env: extractEnv(cfg),
+				ExposedPorts: exposedPorts,
+				Labels:       labels,
+				Env:          envVars,
 			},
 			&container.HostConfig{
-				Binds: []string{
-					storage.GetInstancesDataPath(name, cfg) + ":/data",
-				},
+				Binds:       binds,
 				NetworkMode: container.NetworkMode(cfg.Network),
 				PortBindings: nat.PortMap{
 					"1880": []nat.PortBinding{
@@ -214,8 +229,8 @@ func StartContainer(name string, cfg *model.Config) error {
 			nil, // &network.NetworkingConfig{},
 			name,
 		)
-		if err != nil {
-			return err
+		if err1 != nil {
+			return err1
 		}
 
 		containerID = resp.ID
@@ -232,11 +247,6 @@ func StartContainer(name string, cfg *model.Config) error {
 	}
 
 	logrus.Debugf("Started container %s", name)
-
-	// if _, err = cli.ContainerWait(ctx, containerID); err != nil {
-	// 	return err
-	// }
-	// debug("Waited container")
 
 	return nil
 }
@@ -269,6 +279,16 @@ func ContainerWatchLogs(ctx context.Context, name string, writer io.Writer) erro
 		logrus.Warnf("Failed to open logs %s: %s", name, err.Error())
 		return err
 	}
+
+	// if logrus.GetLevel() == logrus.DebugLevel {
+	go func() {
+		logrus.Debug("Printing instances log")
+		buf := bufio.NewScanner(out)
+		for buf.Scan() {
+			logrus.Debugf("%s", buf.Text())
+		}
+	}()
+	// }
 
 	go func() {
 		// pipe stream, will stop when container stops
