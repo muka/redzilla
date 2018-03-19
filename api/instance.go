@@ -25,9 +25,9 @@ func ListInstances(cfg *model.Config) (*[]model.Instance, error) {
 		return nil, err
 	}
 
-	list := make([]model.Instance, len(jsonlist))
+	list := make([]model.Instance, 0)
 	for _, jsonstr := range jsonlist {
-		item := &model.Instance{}
+		item := new(model.Instance)
 		err = json.Unmarshal([]byte(jsonstr), item)
 		if err != nil {
 			return nil, err
@@ -202,7 +202,7 @@ func (i *Instance) Exists() (bool, error) {
 
 	logrus.Debugf("Check if instance %s exists", i.instance.Name)
 
-	dbInstance := model.Instance{}
+	dbInstance := new(model.Instance)
 	err := i.store.Load(i.instance.Name, dbInstance)
 	if err != nil {
 		if os.IsNotExist(err) {

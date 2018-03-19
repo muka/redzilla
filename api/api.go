@@ -63,7 +63,7 @@ func Start(cfg *model.Config) error {
 			return
 		}
 
-		logrus.Debug("Api call %s %s", c.Request.Method, c.Request.URL.Path)
+		logrus.Debugf("Api call %s %s", c.Request.Method, c.Request.URL.Path)
 
 		name := c.Param("name")
 		instance := GetInstance(name, cfg)
@@ -82,7 +82,7 @@ func Start(cfg *model.Config) error {
 				return
 			}
 
-			c.Status(http.StatusOK)
+			c.JSON(http.StatusOK, instance.GetStatus())
 
 			break
 		case http.MethodPost:
@@ -95,7 +95,7 @@ func Start(cfg *model.Config) error {
 				return
 			}
 
-			c.Status(http.StatusAccepted)
+			c.JSON(http.StatusOK, instance.GetStatus())
 
 			break
 		case http.MethodPut:
@@ -111,7 +111,7 @@ func Start(cfg *model.Config) error {
 				return
 			}
 
-			c.Status(http.StatusAccepted)
+			c.JSON(http.StatusOK, instance.GetStatus())
 
 			break
 		case http.MethodDelete:
@@ -150,8 +150,8 @@ func Start(cfg *model.Config) error {
 			internalError(c, err)
 			return
 		}
+
 		c.JSON(http.StatusOK, list)
-		c.Status(http.StatusOK)
 	})
 
 	// reverse proxy
