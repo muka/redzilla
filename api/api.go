@@ -28,35 +28,44 @@ func instanceExists(c *gin.Context, instance *Instance) bool {
 	return true
 }
 
+func isSubdomain(c *gin.Context, cfg *model.Config) bool {
+	host := c.Request.Host
+	portIdx := strings.Index(c.Request.Host, ":")
+	if portIdx > -1 {
+		host = c.Request.Host[0:portIdx]
+	}
+	// handle only on main domain
+	subdIndex := strings.Index(host, ".")
+	if subdIndex > -1 {
+		return host[subdIndex+1:] == cfg.Domain
+	}
+	return false
+}
+
+func isRootDomain(c *gin.Context, cfg *model.Config) bool {
+	host := c.Request.Host
+	portIdx := strings.Index(c.Request.Host, ":")
+	if portIdx > -1 {
+		host = c.Request.Host[0:portIdx]
+	}
+	// handle only on main domain
+	return host == cfg.Domain
+}
+
 //Start start API HTTP server
 func Start(cfg *model.Config) error {
 
 	router := gin.Default()
+	router.Any("/v2/instances/:name", func(c *gin.Context) {
 
-	v2 := router.Group("/v2", func(c *gin.Context) {
-
-		host := c.Request.Host
-		portIdx := strings.Index(c.Request.Host, ":")
-		if portIdx > -1 {
-			host = c.Request.Host[0:portIdx]
-		}
-
-		// handle only on main domain
-		if host == cfg.Domain {
+		if !isRootDomain(c, cfg) {
 			c.Next()
 			return
 		}
 
-		// handle with proxy
-		c.Abort()
-	})
-
-	v2.Any("/instances/:name", func(c *gin.Context) {
-
-		logrus.Debug("Api call", c.Request.Method, c.Request.URL.Path)
+		logrus.Debug("Api call %s %s", c.Request.Method, c.Request.URL.Path)
 
 		name := c.Param("name")
-
 		instance := GetInstance(name, cfg)
 		if instance == nil {
 			notFound(c)
@@ -128,13 +137,21 @@ func Start(cfg *model.Config) error {
 
 	})
 
-	v2.GET("/instances", func(c *gin.Context) {
+	router.GET("/v2/instances", func(c *gin.Context) {
+
+		if !isRootDomain(c, cfg) {
+			c.Next()
+			return
+		}
+
+		logrus.Debug("List instances")
 		list, err := ListInstances(cfg)
 		if err != nil {
 			internalError(c, err)
 			return
 		}
 		c.JSON(http.StatusOK, list)
+		c.Status(http.StatusOK)
 	})
 
 	// reverse proxy

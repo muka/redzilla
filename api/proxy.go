@@ -114,6 +114,11 @@ func proxyHandler(cfg *model.Config) func(c *gin.Context) {
 	reverseProxy = newReverseProxy(cfg)
 	return func(c *gin.Context) {
 
+		if !isSubdomain(c, cfg) || isRootDomain(c, cfg) {
+			c.Next()
+			return
+		}
+
 		name := extractSubdomain(c.Request.Host, cfg)
 		if len(name) == 0 {
 			logrus.Debugf("Empty subdomain name at %s", c.Request.URL.String())

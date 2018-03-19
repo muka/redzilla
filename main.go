@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/Sirupsen/logrus"
+	"github.com/gin-gonic/gin"
 	"github.com/muka/redzilla/model"
 	"github.com/muka/redzilla/service"
 	"github.com/spf13/viper"
@@ -57,6 +58,10 @@ func main() {
 		panic(fmt.Errorf("Failed to parse level %s: %s", cfg.LogLevel, err))
 	}
 	logrus.SetLevel(lvl)
+
+	if lvl == logrus.DebugLevel {
+		gin.SetMode(gin.ReleaseMode)
+	}
 
 	logrus.Debugf("%++v", cfg)
 
