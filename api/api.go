@@ -1,7 +1,9 @@
 package api
 
 import (
+	"errors"
 	"net/http"
+	"regexp"
 	"strings"
 
 	"github.com/Sirupsen/logrus"
@@ -28,28 +30,34 @@ func instanceExists(c *gin.Context, instance *Instance) bool {
 	return true
 }
 
-func isSubdomain(c *gin.Context, cfg *model.Config) bool {
-	host := c.Request.Host
-	portIdx := strings.Index(c.Request.Host, ":")
+func isSubdomain(host, domain string) bool {
+	portIdx := strings.Index(host, ":")
 	if portIdx > -1 {
-		host = c.Request.Host[0:portIdx]
+		host = host[0:portIdx]
 	}
 	// handle only on main domain
 	subdIndex := strings.Index(host, ".")
 	if subdIndex > -1 {
-		return host[subdIndex+1:] == cfg.Domain
+		return host[subdIndex+1:] == domain
 	}
 	return false
 }
 
-func isRootDomain(c *gin.Context, cfg *model.Config) bool {
-	host := c.Request.Host
-	portIdx := strings.Index(c.Request.Host, ":")
+func isRootDomain(host, domain string) bool {
+	portIdx := strings.Index(host, ":")
 	if portIdx > -1 {
-		host = c.Request.Host[0:portIdx]
+		host = host[0:portIdx]
 	}
 	// handle only on main domain
-	return host == cfg.Domain
+	return host == domain
+}
+
+func validateName(name string) (string, error) {
+	re := regexp.MustCompile("[^0-9a-z_-]")
+	if len(re.FindStringSubmatch(name)) > 0 {
+		return "", errors.New("Invalid instance name")
+	}
+	return name, nil
 }
 
 //Start start API HTTP server
@@ -58,14 +66,19 @@ func Start(cfg *model.Config) error {
 	router := gin.Default()
 	router.Any("/v2/instances/:name", func(c *gin.Context) {
 
-		if !isRootDomain(c, cfg) {
+		if !isRootDomain(c.Request.Host, cfg.Domain) {
 			c.Next()
 			return
 		}
 
 		logrus.Debugf("Api call %s %s", c.Request.Method, c.Request.URL.Path)
 
-		name := c.Param("name")
+		name, err := validateName(c.Param("name"))
+		if err != nil {
+			c.AbortWithError(http.StatusBadRequest, err)
+			return
+		}
+
 		instance := GetInstance(name, cfg)
 		if instance == nil {
 			notFound(c)
@@ -139,7 +152,7 @@ func Start(cfg *model.Config) error {
 
 	router.GET("/v2/instances", func(c *gin.Context) {
 
-		if !isRootDomain(c, cfg) {
+		if !isRootDomain(c.Request.Host, cfg.Domain) {
 			c.Next()
 			return
 		}

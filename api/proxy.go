@@ -114,7 +114,7 @@ func proxyHandler(cfg *model.Config) func(c *gin.Context) {
 	reverseProxy = newReverseProxy(cfg)
 	return func(c *gin.Context) {
 
-		if !isSubdomain(c, cfg) || isRootDomain(c, cfg) {
+		if !isSubdomain(c.Request.Host, cfg.Domain) || isRootDomain(c.Request.Host, cfg.Domain) {
 			c.Next()
 			return
 		}
