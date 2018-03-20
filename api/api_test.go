@@ -27,20 +27,14 @@ func TestIsSubdomain(t *testing.T) {
 }
 
 func TestValidateName(t *testing.T) {
-	const testDomain = "example.localhost"
-	const testSubDomain = "foobar." + testDomain
-	const testInvalidSubDomain = "foobar.juju" + testDomain
+	const testSubDomain = "foobar"
+	const testInvalidSubDomain = "foobar.juju"
 
 	var err error
 
-	_, err = validateName(testDomain)
-	if err != nil {
-		t.Fail()
-	}
-
 	_, err = validateName(testSubDomain)
 	if err != nil {
-		t.Fail()
+		t.Fatal(err)
 	}
 
 	_, err = validateName(testInvalidSubDomain)
