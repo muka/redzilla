@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"html/template"
 	"os"
+	"strings"
 
 	"github.com/Sirupsen/logrus"
 	"github.com/gin-gonic/gin"
@@ -62,9 +63,9 @@ func main() {
 	if strings.ToLower(cfg.AuthType) == "http" {
 
 		a := new(model.AuthHttp)
-		a.Method = viper.GetString("AuthHttpMethod"),
-		a.URL = viper.GetString("AuthHttpUrl"),
-		a.Header = viper.GetString("AuthHttpHeader"),
+		a.Method = viper.GetString("AuthHttpMethod")
+		a.URL = viper.GetString("AuthHttpUrl")
+		a.Header = viper.GetString("AuthHttpHeader")
 
 		//setup the body template
 		rawTpl := viper.GetString("AuthHttpHeader")
@@ -73,8 +74,10 @@ func main() {
 			if err != nil {
 				panic(fmt.Errorf("Failed to parse template: %s", err))
 			}
-			cfg.AuthHttpBody = bodyTemplate
+			a.Body = bodyTemplate
 		}
+
+		cfg.AuthHttp = a
 	}
 
 	lvl, err := logrus.ParseLevel(cfg.LogLevel)
