@@ -95,6 +95,6 @@ func doRequest(reqArgs *RequestBodyTemplate, a *model.AuthHttp) (bool, error) {
 		return false, err
 	}
 
-	logrus.Debugf("Request unauthorized %s %s [response code: %s]", reqArgs.Method, reqArgs.Url, resp.StatusCode)
+	logrus.Debugf("Request unauthorized %s %s [response code: %d]", reqArgs.Method, reqArgs.Url, resp.StatusCode)
 	return false, nil
 }

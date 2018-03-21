@@ -64,6 +64,11 @@ func validateName(name string) (string, error) {
 func Start(cfg *model.Config) error {
 
 	router := gin.Default()
+
+	if len(cfg.AuthType) > 0 && cfg.AuthType != "none" {
+		router.Use(AuthHandler(cfg))
+	}
+
 	router.Any("/v2/instances/:name", func(c *gin.Context) {
 
 		if !isRootDomain(c.Request.Host, cfg.Domain) {

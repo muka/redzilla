@@ -25,6 +25,7 @@ func main() {
 	viper.SetDefault("LogLevel", "info")
 	viper.SetDefault("Autostart", false)
 	viper.SetDefault("EnvPrefix", "")
+
 	viper.SetDefault("AuthType", "none")
 	viper.SetDefault("AuthHttpMethod", "GET")
 	viper.SetDefault("AuthHttpUrl", "")
