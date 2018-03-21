@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"html/template"
 	"os"
 
 	"github.com/Sirupsen/logrus"
@@ -23,6 +24,10 @@ func main() {
 	viper.SetDefault("LogLevel", "info")
 	viper.SetDefault("Autostart", false)
 	viper.SetDefault("EnvPrefix", "")
+	viper.SetDefault("AuthType", "none")
+	viper.SetDefault("AuthHttpMethod", "GET")
+	viper.SetDefault("AuthHttpUrl", "")
+	viper.SetDefault("AuthHttpHeader", "Authorization")
 
 	viper.SetEnvPrefix("redzilla")
 	viper.AutomaticEnv()
@@ -51,6 +56,25 @@ func main() {
 		LogLevel:           viper.GetString("LogLevel"),
 		Autostart:          viper.GetBool("Autostart"),
 		EnvPrefix:          viper.GetString("EnvPrefix"),
+		AuthType:           viper.GetString("AuthType"),
+	}
+
+	if strings.ToLower(cfg.AuthType) == "http" {
+
+		a := new(model.AuthHttp)
+		a.Method = viper.GetString("AuthHttpMethod"),
+		a.URL = viper.GetString("AuthHttpUrl"),
+		a.Header = viper.GetString("AuthHttpHeader"),
+
+		//setup the body template
+		rawTpl := viper.GetString("AuthHttpHeader")
+		if len(rawTpl) > 0 {
+			bodyTemplate, err := template.New("").Parse(rawTpl)
+			if err != nil {
+				panic(fmt.Errorf("Failed to parse template: %s", err))
+			}
+			cfg.AuthHttpBody = bodyTemplate
+		}
 	}
 
 	lvl, err := logrus.ParseLevel(cfg.LogLevel)
@@ -59,7 +83,7 @@ func main() {
 	}
 	logrus.SetLevel(lvl)
 
-	if lvl == logrus.DebugLevel {
+	if lvl != logrus.DebugLevel {
 		gin.SetMode(gin.ReleaseMode)
 	}
 

@@ -10,3 +10,13 @@ InstanceDataPath: ./data/instances
 InstanceConfigPath: ./data/config
 LogLevel: info
 EnvPrefix:
+
+#none or http
+AuthType: none
+
+#HTTP based auth / ACL will performa a POST request to an endpoint and allow on 2xx or deny on other responses
+#Body is a go template
+AuthHttpMethod: POST
+AuthHttpUrl: http://localhost/auth/check
+AuthHttpHeader: Authorization
+AuthHttpBody: "{ \"name\": \"{{.Name}}\", \"url\": \"{{.Url}}\", \"method\": \"{{.Method}}\" }"
