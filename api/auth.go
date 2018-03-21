@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/Sirupsen/logrus"
 	"github.com/gin-gonic/gin"
@@ -70,6 +71,7 @@ func doRequest(reqArgs *RequestBodyTemplate, a *model.AuthHttp) (bool, error) {
 	}
 
 	client := new(http.Client)
+	client.Timeout = time.Duration(2 * time.Second)
 	req, err := http.NewRequest(method, url, &body)
 	if err != nil {
 		logrus.Warnf("Auth request creation failed: %s", err)
