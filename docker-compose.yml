@@ -1,9 +1,10 @@
-version: '2'
+version: '3'
 
 services:
 
   redzilla:
-    image: opny/redzilla
+    build: .
+    # image: opny/redzilla
     environment:
       # default compose network name
       REDZILLA_NETWORK: redzilla_redzilla

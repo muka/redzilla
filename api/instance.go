@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"os"
 
-	"github.com/Sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 	"github.com/muka/redzilla/docker"
 	"github.com/muka/redzilla/model"
 	"github.com/muka/redzilla/storage"

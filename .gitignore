@@ -6,4 +6,4 @@ data/*
 redzilla
 debug
 /config.yml
-
+/vendor

@@ -9,7 +9,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Sirupsen/logrus"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/events"
@@ -18,6 +17,7 @@ import (
 	"github.com/docker/go-connections/nat"
 	"github.com/muka/redzilla/model"
 	"github.com/muka/redzilla/storage"
+	"github.com/sirupsen/logrus"
 
 	"golang.org/x/net/context"
 )
@@ -371,7 +371,7 @@ func GetNetwork(networkID string) (*types.NetworkResource, error) {
 	}
 
 	ctx := context.Background()
-	n, err = cli.NetworkInspect(ctx, networkID, types.NetworkInspectOptions{})
+	n, err = cli.NetworkInspect(ctx, networkID)
 	if err != nil {
 		return &n, err
 	}

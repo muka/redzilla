@@ -1,21 +1,27 @@
 
 Network: redzilla
 APIPort: :3000
+
 Domain: redzilla.localhost
+
 ImageName: nodered/node-red-docker
 StorePath: ./data/store
+
 # Mounted to /data, will be ${InstanceDataPath}/${InstanceName} with instance name in path
 InstanceDataPath: ./data/instances
+
 # Mounted to /config, will be ${InstanceConfigPath} with no instance name specialization
 InstanceConfigPath: ./data/config
+
 LogLevel: info
+
 EnvPrefix:
 
-#none or http
+# none or http
 AuthType: none
 
-#HTTP based auth / ACL will performa a POST request to an endpoint and allow on 2xx or deny on other responses
-#Body is a go template
+# HTTP based auth / ACL will performa a POST request to an endpoint and allow on 2xx or deny on other responses
+# Body is a go template
 AuthHttpMethod: POST
 AuthHttpUrl: http://localhost/auth/check
 AuthHttpHeader: Authorization

@@ -1,7 +1,7 @@
 package storage
 
 import (
-	"github.com/Sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 	"github.com/muka/redzilla/model"
 )
 
