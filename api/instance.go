@@ -3,12 +3,13 @@ package api
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"os"
 
-	"github.com/sirupsen/logrus"
 	"github.com/muka/redzilla/docker"
 	"github.com/muka/redzilla/model"
 	"github.com/muka/redzilla/storage"
+	"github.com/sirupsen/logrus"
 )
 
 const instanceCollection = "instances"
@@ -145,7 +146,7 @@ func (i *Instance) Start() error {
 
 	err = docker.StartContainer(i.instance.Name, i.cfg)
 	if err != nil {
-		return err
+		return fmt.Errorf("StartContainer: %s", err)
 	}
 
 	return nil

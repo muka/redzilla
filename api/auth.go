@@ -7,9 +7,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/sirupsen/logrus"
 	"github.com/gin-gonic/gin"
 	"github.com/muka/redzilla/model"
+	"github.com/sirupsen/logrus"
 )
 
 //RequestBodyTemplate contains params avail in the body template
@@ -89,7 +89,7 @@ func doRequest(reqArgs *RequestBodyTemplate, a *model.AuthHttp) (bool, error) {
 		return true, nil
 	}
 	if resp.StatusCode >= 500 {
-		logrus.Warnf("Auth request failed with code %s", resp.StatusCode)
+		logrus.Warnf("Auth request failed with code %d", resp.StatusCode)
 		body, err := ioutil.ReadAll(resp.Body)
 		if err == nil {
 			logrus.Warnf("Response body: %s", string(body))
