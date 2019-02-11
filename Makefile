@@ -1,7 +1,5 @@
 
-TAG := git describe --tags
-
-
+TAG := $(shell git describe --tags | grep "^[v0-9.]*" -o)
 
 run:
 	go run main.go
