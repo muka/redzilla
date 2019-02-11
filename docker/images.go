@@ -60,7 +60,7 @@ func EnsureImage(imageName string) error {
 	return nil
 }
 
-func RemoveImage(imageName string) error {
+func RemoveImage(imageName string, force bool) error {
 
 	cli, err := getClient()
 	if err != nil {
@@ -97,7 +97,7 @@ func RemoveImage(imageName string) error {
 	}
 
 	_, err = cli.ImageRemove(context.Background(), imageID, types.ImageRemoveOptions{
-		// Force:
+		Force: force,
 	})
 	if err != nil {
 		return err

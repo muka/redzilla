@@ -36,7 +36,7 @@ func TestStartContainerLocal(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	err = RemoveImage(imageName)
+	err = RemoveImage(imageName, true)
 	if err != nil {
 		t.Fatal(err)
 	}
