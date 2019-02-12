@@ -29,14 +29,14 @@ func StartContainer(name string, cfg *model.Config) error {
 		return fmt.Errorf("EnsureImge: %s", err)
 	}
 
-	info, err := GetContainer(name)
-	if err != nil {
-		return err
-	}
-
 	_, err = GetNetwork(cfg.Network)
 	if err != nil {
 		return fmt.Errorf("Failed to get network %s", cfg.Network)
+	}
+
+	info, err := GetContainer(name)
+	if err != nil {
+		return fmt.Errorf("GetContainer error: %s", err)
 	}
 
 	ctx := context.Background()
@@ -52,6 +52,7 @@ func StartContainer(name string, cfg *model.Config) error {
 			"redzilla":          "1",
 			"redzilla_instance": "redzilla_" + name,
 		}
+
 		exposedPorts := map[nat.Port]struct{}{
 			"1880/tcp": {},
 		}
@@ -91,7 +92,8 @@ func StartContainer(name string, cfg *model.Config) error {
 							HostPort: "1880",
 						},
 					}},
-				AutoRemove: true,
+				// AutoRemove: true,
+
 				// Links           []string          // List of links (in the name:alias form)
 				// PublishAllPorts bool              // Should docker publish all exposed port for the container
 				// Mounts []mount.Mount `json:",omitempty"`
@@ -110,11 +112,22 @@ func StartContainer(name string, cfg *model.Config) error {
 		logrus.Debugf("Reusing container %s", name)
 	}
 
-	logrus.Debugf("Container %s with ID %s", name, containerID)
+	logrus.Debugf("Starting `%s` (ID:%s)", name, containerID)
 
 	if err = cli.ContainerStart(ctx, containerID, types.ContainerStartOptions{}); err != nil {
 		return err
 	}
+
+	// _, err = cli.ContainerWait(ctx, containerID)
+	// if err != nil {
+	// 	return fmt.Errorf("Failed to start container: %s", err)
+	// }
+
+	// out, err := cli.ContainerLogs(ctx, containerID, types.ContainerLogsOptions{ShowStdout: true})
+	// if err != nil {
+	// 	return fmt.Errorf("Cannot open container logs: %s", err)
+	// }
+	// io.Copy(os.Stdout, out)
 
 	logrus.Debugf("Started container %s", name)
 

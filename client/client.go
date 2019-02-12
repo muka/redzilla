@@ -1,58 +1,137 @@
 package client
 
-import "fmt"
+import (
+	"bytes"
+	"encoding/json"
+	"errors"
+	"fmt"
+	"io/ioutil"
+	"strings"
+
+	httpclient "github.com/ddliu/go-httpclient"
+	"github.com/sirupsen/logrus"
+)
 
 func NewClient(opts ClientOptions) (*Client, error) {
+
 	c := new(Client)
 	c.options = opts
+
+	m := httpclient.Map{
+		httpclient.OPT_USERAGENT: "go-nodered-client",
+		"Node-RED-API-Version":   "v2",
+	}
+
+	if opts.Authorization != "" {
+		m["Authorization"] = "Bearer " + opts.Authorization
+	}
+
+	c.client = httpclient.NewHttpClient().Defaults(m)
 	return c, nil
 }
 
 type ClientOptions struct {
+	BaseUrl       string
+	Authorization string
 }
 
 type Client struct {
 	options ClientOptions
+	client  *httpclient.HttpClient
 }
 
-func (c *Client) req(method, url string, data []byte) ([]byte, error) {
-	return []byte{}, nil
+func (c *Client) req(method, path string, body []byte) ([]byte, error) {
+
+	url := c.options.BaseUrl + path
+	headers := map[string]string{}
+	r, err := c.client.Begin().Do(method, url, headers, bytes.NewReader(body))
+	if err != nil {
+		return nil, err
+	}
+	res, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		return nil, err
+	}
+	return res, nil
 }
 
-// GetAuthLogin Get the active authentication scheme
-func (c *Client) GetAuthLogin() error {
-	res, err := c.req("GET", "/auth/login")
-	return err
+// AuthLoginGet Get the active authentication scheme
+func (c *Client) AuthLoginGet() (*AuthScheme, error) {
+	res, err := c.req("GET", "/auth/login", nil)
+	if err != nil {
+		return nil, err
+	}
+
+	r := new(AuthScheme)
+	err = json.Unmarshal(res, r)
+	if err != nil {
+		return nil, err
+	}
+
+	return r, nil
 }
 
 // AuthToken Exchange credentials for access token
-func (c *Client) AuthToken() error {
-	res, err := c.req("POST", "/auth/token")
-	return err
+func (c *Client) AuthToken(authToken AuthTokenRequest) (*AuthToken, error) {
+
+	body, err := json.Marshal(authToken)
+	if err != nil {
+		return nil, err
+	}
+
+	res, err := c.req("POST", "/auth/token", body)
+	logrus.Debug()
+
+	// Error - Cannot POST /auth/token
+	if strings.Contains(string(res), "Error") {
+		return nil, errors.New("Request failed")
+	}
+
+	if err != nil {
+		return nil, err
+	}
+
+	r := new(AuthToken)
+	err = json.Unmarshal(res, r)
+	if err != nil {
+		return nil, err
+	}
+
+	return r, nil
 }
 
-// AuthRevokeToken Revoke an access token
-func (c *Client) AuthRevokeToken() error {
-	res, err := c.req("POST", "/auth/revoke")
+// AuthTokenRevoke Revoke an access token
+func (c *Client) AuthTokenRevoke() error {
+	_, err := c.req("POST", "/auth/revoke", nil)
 	return err
 }
 
 // Settings Get the runtime settings
 func (c *Client) Settings() error {
-	res, err := c.req("GET", "/settings")
+	_, err := c.req("GET", "/settings", nil)
 	return err
 }
 
-// FlowsGet Get the active flow configuration
-func (c *Client) FlowsGet() error {
-	_, err := c.req("GET", "/flows", nil)
-	return err
+// FlowsList Get the active flow configuration
+func (c *Client) FlowsList() (*FlowsList, error) {
+	res, err := c.req("GET", "/flows", nil)
+	if err != nil {
+		return nil, err
+	}
+
+	list := new(FlowsList)
+	err = json.Unmarshal(res, list)
+	if err != nil {
+		return nil, err
+	}
+
+	return list, nil
 }
 
 // FlowsSet	Set the active flow configuration
 func (c *Client) FlowsSet() error {
 	_, err := c.req("POST", "/flows", nil)
-	return nil
+	return err
 }
 
 // FlowsAdd Add a flow to the active configuration
@@ -79,8 +158,8 @@ func (c *Client) FlowsDelete(id string) error {
 	return err
 }
 
-// NodesGet	Get a list of the installed nodes
-func (c *Client) NodesGet() error {
+// NodesList	Get a list of the installed nodes
+func (c *Client) NodesList() error {
 	c.req("GET", "/nodes", nil)
 	return nil
 }
@@ -105,18 +184,18 @@ func (c *Client) NodesToggle(module string) error {
 
 // NodesRemove Remove a node module
 func (c *Client) NodesRemove(module string) error {
-	c.req("DELETE", fmt.Sprintf("/nodes/%s", module))
+	c.req("DELETE", fmt.Sprintf("/nodes/%s", module), nil)
 	return nil
 }
 
 // NodesModuleSetGet Get a node module set information
 func (c *Client) NodesModuleSetGet(module, set string) error {
-	c.req("GET", fmt.Sprintf("/nodes/%s/%s", module, set))
+	c.req("GET", fmt.Sprintf("/nodes/%s/%s", module, set), nil)
 	return nil
 }
 
 // NodesModuleSetToggle Enable/Disable a node set
 func (c *Client) NodesModuleSetToggle(module, set string) error {
-	c.req("PUT", fmt.Sprintf("/nodes/%s/%s", module, set))
+	c.req("PUT", fmt.Sprintf("/nodes/%s/%s", module, set), nil)
 	return nil
 }

@@ -185,7 +185,7 @@ func (i *Instance) Stop() error {
 
 	logrus.Debugf("Stopping instance %s", i.instance.Name)
 
-	err := docker.StopContainer(i.instance.Name)
+	err := docker.StopContainer(i.instance.Name, false)
 	if err != nil {
 		return err
 	}

@@ -22,6 +22,7 @@ func TestEnsureRemoteImage(t *testing.T) {
 func TestEnsureLocalImage(t *testing.T) {
 
 	logrus.SetLevel(logrus.DebugLevel)
+
 	imageName := "test_local_image_build"
 	err := BuildImage(imageName, "../test")
 	if err != nil {
@@ -38,6 +39,8 @@ func TestEnsureLocalImage(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	defer RemoveImage(imageName, true)
+
 }
 
 func TestBuildImageFail(t *testing.T) {
@@ -49,5 +52,7 @@ func TestBuildImageFail(t *testing.T) {
 	if err == nil {
 		t.Fatal("Build shoul fail")
 	}
+
+	defer RemoveImage(imageName, true)
 
 }

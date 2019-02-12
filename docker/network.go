@@ -38,7 +38,7 @@ func GetNetwork(networkID string) (*types.NetworkResource, error) {
 		return nil, err
 	}
 
-	net, err := cli.NetworkInspect(ctx, networkID)
+	net, err := cli.NetworkInspect(ctx, networkID, types.NetworkInspectOptions{})
 	if err != nil {
 		return nil, err
 	}

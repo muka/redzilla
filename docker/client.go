@@ -6,22 +6,12 @@ import (
 	"strings"
 
 	"github.com/docker/docker/api/types"
-	"github.com/docker/docker/api/types/events"
 	"github.com/docker/docker/client"
 	"github.com/muka/redzilla/model"
 
 	"golang.org/x/net/context"
 )
 
-//ContainerEvent store a container event
-type ContainerEvent struct {
-	ID      string
-	Name    string
-	Action  string
-	Message events.Message
-}
-
-var eventsChannel = make(chan ContainerEvent)
 var dockerClient *client.Client
 
 //return a docker client

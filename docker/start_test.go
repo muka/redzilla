@@ -22,8 +22,10 @@ func TestStartContainerLocal(t *testing.T) {
 
 	containerName := "container_redz_test_local"
 	cfg := &model.Config{
-		Network:   "redzilla_test",
-		ImageName: imageName,
+		Network:            "redzilla_test",
+		ImageName:          imageName,
+		InstanceConfigPath: "../data/test",
+		InstanceDataPath:   "../data/test",
 	}
 
 	err = StartContainer(containerName, cfg)
@@ -31,12 +33,7 @@ func TestStartContainerLocal(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	err = StopContainer(containerName)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	err = RemoveImage(imageName, true)
+	err = StopContainer(containerName, true)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -49,8 +46,10 @@ func TestStartContainerRemote(t *testing.T) {
 
 	containerName := "container_redz_test"
 	cfg := &model.Config{
-		Network:   "redzilla_test",
-		ImageName: "nodered/node-red-docker:latest",
+		Network:            "redzilla_test",
+		ImageName:          "nodered/node-red-docker:latest",
+		InstanceConfigPath: "../data/test",
+		InstanceDataPath:   "../data/test",
 	}
 
 	err := StartContainer(containerName, cfg)
@@ -58,7 +57,7 @@ func TestStartContainerRemote(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	err = StopContainer(containerName)
+	err = StopContainer(containerName, true)
 	if err != nil {
 		t.Fatal(err)
 	}
