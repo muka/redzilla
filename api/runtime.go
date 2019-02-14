@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/sirupsen/logrus"
 	"github.com/muka/redzilla/docker"
 	"github.com/muka/redzilla/model"
+	"github.com/sirupsen/logrus"
 )
 
 //Reset reset container runtime information
@@ -29,7 +29,11 @@ func (i *Instance) GetIP() (string, error) {
 
 	net, err := docker.GetNetwork(i.cfg.Network)
 	if err != nil {
-		return ip, err
+		return "", err
+	}
+
+	if len(net.Containers) == 0 {
+		return "", fmt.Errorf("Network '%s' has no container attached", i.cfg.Network)
 	}
 
 	for _, container := range net.Containers {

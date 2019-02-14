@@ -1,10 +1,10 @@
 package service
 
 import (
-	"github.com/sirupsen/logrus"
 	"github.com/muka/redzilla/api"
 	"github.com/muka/redzilla/docker"
 	"github.com/muka/redzilla/model"
+	"github.com/sirupsen/logrus"
 )
 
 // Start the service
@@ -72,6 +72,5 @@ func Start(cfg *model.Config) error {
 
 // Stop the service
 func Stop(cfg *model.Config) {
-
 	api.CloseInstanceLoggers()
 }

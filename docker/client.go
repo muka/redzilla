@@ -8,14 +8,24 @@ import (
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/client"
 	"github.com/muka/redzilla/model"
+	"github.com/spf13/viper"
 
 	"golang.org/x/net/context"
 )
+
+const DefaultDockerApiVersion = "1.39"
 
 var dockerClient *client.Client
 
 //return a docker client
 func getClient() (*client.Client, error) {
+
+	version := viper.GetString("docker_api_version")
+	if version == "" {
+		version = DefaultDockerApiVersion
+	}
+
+	os.Setenv("DOCKER_API_VERSION", version)
 
 	if dockerClient == nil {
 		cli, err := client.NewEnvClient()

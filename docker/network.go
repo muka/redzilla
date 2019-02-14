@@ -1,6 +1,8 @@
 package docker
 
 import (
+	"fmt"
+
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/filters"
 	"golang.org/x/net/context"
@@ -27,22 +29,32 @@ func GetNetwork(networkID string) (*types.NetworkResource, error) {
 
 	for _, net := range list {
 		if net.Name == networkID {
-			return &net, nil
+			return inspectNetwork(networkID)
 		}
 	}
 
 	_, err = cli.NetworkCreate(ctx, networkID, types.NetworkCreate{
 		CheckDuplicate: true,
+		Attachable:     true,
+		Driver:         "bridge",
 	})
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("NetworkCreate: %s", err)
 	}
 
-	net, err := cli.NetworkInspect(ctx, networkID, types.NetworkInspectOptions{})
+	return inspectNetwork(networkID)
+}
+
+func inspectNetwork(networkID string) (*types.NetworkResource, error) {
+	cli, err := getClient()
 	if err != nil {
 		return nil, err
 	}
-
+	ctx := context.Background()
+	net, err := cli.NetworkInspect(ctx, networkID, types.NetworkInspectOptions{})
+	if err != nil {
+		return nil, fmt.Errorf("NetworkInspect: %s", err)
+	}
 	return &net, nil
 }
 
@@ -53,7 +65,7 @@ func removeNetwork(networkID string) error {
 	}
 	err = cli.NetworkRemove(context.Background(), networkID)
 	if err != nil {
-		return err
+		return fmt.Errorf("NetworkRemove: %s", err)
 	}
 	return nil
 }

@@ -7,6 +7,7 @@ import (
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
+	"github.com/docker/docker/api/types/network"
 	"github.com/docker/go-connections/nat"
 	"github.com/muka/redzilla/model"
 	"github.com/muka/redzilla/storage"
@@ -31,12 +32,12 @@ func StartContainer(name string, cfg *model.Config) error {
 
 	_, err = GetNetwork(cfg.Network)
 	if err != nil {
-		return fmt.Errorf("Failed to get network %s", cfg.Network)
+		return fmt.Errorf("GetNetwork: %s", err)
 	}
 
 	info, err := GetContainer(name)
 	if err != nil {
-		return fmt.Errorf("GetContainer error: %s", err)
+		return fmt.Errorf("GetContainer: %s", err)
 	}
 
 	ctx := context.Background()
@@ -66,9 +67,9 @@ func StartContainer(name string, cfg *model.Config) error {
 
 		envVars := extractEnv(cfg)
 
-		logrus.Debugf("Creating new container %s ", name)
-		logrus.Debugf("Bind paths: %v", binds)
-		logrus.Debugf("Env: %v", envVars)
+		logrus.Tracef("Creating new container %s ", name)
+		logrus.Tracef("Bind paths: %v", binds)
+		logrus.Tracef("Env: %v", envVars)
 
 		resp, err1 := cli.ContainerCreate(ctx,
 			&container.Config{
@@ -92,13 +93,14 @@ func StartContainer(name string, cfg *model.Config) error {
 							HostPort: "1880",
 						},
 					}},
-				// AutoRemove: true,
+				AutoRemove: true,
 
 				// Links           []string          // List of links (in the name:alias form)
-				// PublishAllPorts bool              // Should docker publish all exposed port for the container
+				PublishAllPorts: true, // Should docker publish all exposed port for the container
 				// Mounts []mount.Mount `json:",omitempty"`
 			},
-			nil, // &network.NetworkingConfig{},
+			// nil,
+			&network.NetworkingConfig{},
 			name,
 		)
 		if err1 != nil {
@@ -115,7 +117,7 @@ func StartContainer(name string, cfg *model.Config) error {
 	logrus.Debugf("Starting `%s` (ID:%s)", name, containerID)
 
 	if err = cli.ContainerStart(ctx, containerID, types.ContainerStartOptions{}); err != nil {
-		return err
+		return fmt.Errorf("ContainerStart: %s", err)
 	}
 
 	// _, err = cli.ContainerWait(ctx, containerID)

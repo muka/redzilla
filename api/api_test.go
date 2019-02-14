@@ -1,41 +1,52 @@
 package api
 
 import (
+	"encoding/json"
+	"fmt"
+	"net/http"
 	"testing"
+
+	httpclient "github.com/ddliu/go-httpclient"
+	"github.com/muka/redzilla/config"
+	"github.com/muka/redzilla/model"
+	"github.com/stretchr/testify/assert"
 )
 
-func TestIsRootDomain(t *testing.T) {
-	const testDomain = "example.localhost"
-	const testSubDomain = "foobar." + testDomain
-	if !isRootDomain(testDomain, testDomain) {
-		t.Fail()
-	}
-	if isRootDomain(testSubDomain, testDomain) {
-		t.Fail()
-	}
-}
+func TestAPI(t *testing.T) {
 
-func TestIsSubdomain(t *testing.T) {
-	const testDomain = "example.localhost"
-	const testSubDomain = "foobar." + testDomain
-	if isSubdomain(testDomain, testDomain) {
-		t.Fail()
-	}
-	if !isSubdomain(testSubDomain, testDomain) {
-		t.Fail()
-	}
-}
+	err := config.Init()
+	assert.NoError(t, err)
 
-func TestValidateName(t *testing.T) {
-	const testSubDomain = "foobar"
-	const testInvalidSubDomain = "foobar.juju"
-	var err error
-	_, err = validateName(testSubDomain)
-	if err != nil {
-		t.Fatal(err)
-	}
-	_, err = validateName(testInvalidSubDomain)
-	if err == nil {
-		t.Fatal(err)
-	}
+	cfg, err := config.GetApiConfig()
+	assert.NoError(t, err)
+
+	cfg.APIPort = ":50015"
+	cfg.Autostart = true
+	cfg.StorePath = "../test/data"
+	cfg.InstanceDataPath = "../test/data/instances"
+	cfg.InstanceConfigPath = "../test/data/config"
+
+	defer CloseInstanceLoggers()
+
+	go func() {
+		err = Start(cfg)
+		assert.NoError(t, err)
+	}()
+
+	baseUrl := fmt.Sprintf("http://%s%s/v2/instances", cfg.Domain, cfg.APIPort)
+	res, err := httpclient.PostJson(baseUrl+"/test1", nil)
+	assert.NoError(t, err)
+
+	assert.Equal(t, http.StatusOK, res.StatusCode)
+
+	b, err := res.ReadAll()
+	assert.NoError(t, err)
+
+	instance := new(model.Instance)
+	err = json.Unmarshal(b, instance)
+	assert.NoError(t, err)
+
+	assert.NotEmpty(t, instance.Name)
+	assert.NotEmpty(t, instance.IP)
+
 }

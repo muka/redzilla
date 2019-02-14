@@ -1,14 +1,14 @@
 version: '3'
 
 services:
-
   redzilla:
-    build: .
-    # image: opny/redzilla
+    image: opny/redzilla
     environment:
-      # default compose network name
+      DOCKER_API_VERSION: 1.39
+      # compose created network name
       REDZILLA_NETWORK: redzilla_redzilla
       REDZILLA_DOMAIN: redzilla.localhost
+      REDZILLA_IMAGENAME: docker.io/nodered/node-red-docker:latest
     networks:
       - redzilla
     ports:

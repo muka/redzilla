@@ -1,12 +1,14 @@
 package api
 
 import (
+	"errors"
 	"net/http"
+	"regexp"
 	"strings"
 
-	"github.com/sirupsen/logrus"
 	"github.com/gin-gonic/gin"
 	"github.com/muka/redzilla/model"
+	"github.com/sirupsen/logrus"
 )
 
 // JSONError a JSON response in case of error
@@ -44,4 +46,50 @@ func extractSubdomain(host string, cfg *model.Config) string {
 	hostname := host[:strings.Index(host, ":")]
 	name := strings.Replace(hostname, "."+cfg.Domain, "", -1)
 	return name
+}
+
+func instanceExists(c *gin.Context, instance *Instance) bool {
+
+	exists, err := instance.Exists()
+	if err != nil {
+		internalError(c, err)
+		return false
+	}
+
+	if !exists {
+		notFound(c)
+		return false
+	}
+
+	return true
+}
+
+func isSubdomain(host, domain string) bool {
+	portIdx := strings.Index(host, ":")
+	if portIdx > -1 {
+		host = host[0:portIdx]
+	}
+	// handle only on main domain
+	subdIndex := strings.Index(host, ".")
+	if subdIndex > -1 {
+		return host[subdIndex+1:] == domain
+	}
+	return false
+}
+
+func isRootDomain(host, domain string) bool {
+	portIdx := strings.Index(host, ":")
+	if portIdx > -1 {
+		host = host[0:portIdx]
+	}
+	// handle only on main domain
+	return host == domain
+}
+
+func validateName(name string) (string, error) {
+	re := regexp.MustCompile("[^0-9a-z_-]")
+	if len(re.FindStringSubmatch(name)) > 0 {
+		return "", errors.New("Invalid instance name")
+	}
+	return name, nil
 }
