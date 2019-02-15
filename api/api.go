@@ -116,6 +116,7 @@ func Start(cfg *model.Config) error {
 		logrus.Debug("List instances")
 		list, err := ListInstances(cfg)
 		if err != nil {
+			logrus.Errorf("ListInstances: %s", err)
 			internalError(c, err)
 			return
 		}

@@ -5,31 +5,21 @@ import (
 	"strings"
 
 	"github.com/muka/redzilla/docker"
-	"github.com/muka/redzilla/model"
 	"github.com/sirupsen/logrus"
 )
-
-//Reset reset container runtime information
-func (i *Instance) Reset() error {
-
-	i.instance.IP = ""
-	i.instance.Status = model.InstanceStopped
-
-	return nil
-}
 
 //GetIP return the container IP
 func (i *Instance) GetIP() (string, error) {
 
 	ip := ""
 
-	if len(i.instance.IP) > 0 {
+	if i.instance.IP != "" {
 		return i.instance.IP, nil
 	}
 
 	net, err := docker.GetNetwork(i.cfg.Network)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("GetNetwork: %s", err)
 	}
 
 	if len(net.Containers) == 0 {

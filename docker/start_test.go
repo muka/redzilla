@@ -5,6 +5,7 @@ import (
 
 	"github.com/muka/redzilla/model"
 	"github.com/sirupsen/logrus"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestStartContainerLocal(t *testing.T) {
@@ -20,9 +21,10 @@ func TestStartContainerLocal(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	networkID := "redzilla_test"
 	containerName := "container_redz_test_local"
 	cfg := &model.Config{
-		Network:            "redzilla_test",
+		Network:            networkID,
 		ImageName:          imageName,
 		InstanceConfigPath: "../data/test",
 		InstanceDataPath:   "../data/test",
@@ -32,6 +34,9 @@ func TestStartContainerLocal(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+
+	net, err := GetNetwork(networkID)
+	assert.NotEmpty(t, net.Containers)
 
 	err = StopContainer(containerName, true)
 	if err != nil {

@@ -22,7 +22,7 @@ func TestAPI(t *testing.T) {
 
 	cfg.APIPort = ":50015"
 	cfg.Autostart = true
-	cfg.StorePath = "../test/data"
+	cfg.StorePath = "../test/data/store"
 	cfg.InstanceDataPath = "../test/data/instances"
 	cfg.InstanceConfigPath = "../test/data/config"
 
@@ -36,7 +36,6 @@ func TestAPI(t *testing.T) {
 	baseUrl := fmt.Sprintf("http://%s%s/v2/instances", cfg.Domain, cfg.APIPort)
 	res, err := httpclient.PostJson(baseUrl+"/test1", nil)
 	assert.NoError(t, err)
-
 	assert.Equal(t, http.StatusOK, res.StatusCode)
 
 	b, err := res.ReadAll()
@@ -48,5 +47,20 @@ func TestAPI(t *testing.T) {
 
 	assert.NotEmpty(t, instance.Name)
 	assert.NotEmpty(t, instance.IP)
+
+	_, err = httpclient.Delete(baseUrl + "/test1")
+	assert.NoError(t, err)
+	assert.Equal(t, http.StatusOK, res.StatusCode)
+
+	res, err = httpclient.Get(baseUrl)
+	assert.NoError(t, err)
+	assert.Equal(t, http.StatusOK, res.StatusCode)
+
+	b, err = res.ReadAll()
+	assert.NoError(t, err)
+
+	instances := make([]model.Instance, 0)
+	err = json.Unmarshal(b, &instances)
+	assert.NoError(t, err)
 
 }

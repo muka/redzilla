@@ -32,10 +32,10 @@ func TestInstance(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotEmpty(t, ip)
 
-	// err = i.Stop()
-	// assert.NoError(t, err)
-	//
-	// err = i.Remove()
-	// assert.NoError(t, err)
+	err = i.Stop()
+	assert.NoError(t, err)
+
+	err = i.Remove()
+	assert.NoError(t, err)
 
 }

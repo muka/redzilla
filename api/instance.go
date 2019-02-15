@@ -23,7 +23,7 @@ func ListInstances(cfg *model.Config) (*[]model.Instance, error) {
 
 	jsonlist, err := store.List()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("store.List: %s", err)
 	}
 
 	list := make([]model.Instance, 0)
@@ -149,19 +149,12 @@ func (i *Instance) Start() error {
 		return fmt.Errorf("StartContainer: %s", err)
 	}
 
+	_, err = i.GetIP()
+	if err != nil {
+		return fmt.Errorf("GetIP: %s", err)
+	}
+
 	return nil
-}
-
-//StartLogsPipe start the container log pipe
-func (i *Instance) StartLogsPipe() error {
-	logrus.Debugf("Start log pipe for %s", i.instance.Name)
-	return docker.ContainerWatchLogs(i.logContext.GetContext(), i.instance.Name, i.logger.GetFile())
-}
-
-//StopLogsPipe stop the container log pipe
-func (i *Instance) StopLogsPipe() {
-	logrus.Debugf("Stopped log pipe for %s", i.instance.Name)
-	i.logContext.Cancel()
 }
 
 //Remove instance and stop it if running
@@ -239,11 +232,18 @@ func (i *Instance) IsRunning() (bool, error) {
 
 //Restart instance
 func (i *Instance) Restart() error {
-	i.Stop()
+	err := i.Stop()
+	if err != nil {
+		return fmt.Errorf("Stop: %s", err)
+	}
 	return i.Start()
 }
 
-//GetLogger Return the dedicated logger
-func (i *Instance) GetLogger() *logrus.Logger {
-	return i.logger.GetLogger()
+//Reset reset container runtime information
+func (i *Instance) Reset() error {
+
+	i.instance.IP = ""
+	i.instance.Status = model.InstanceStopped
+
+	return nil
 }
