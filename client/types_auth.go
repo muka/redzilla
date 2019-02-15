@@ -13,6 +13,10 @@ type AuthScheme struct {
 	Prompts []Prompt
 }
 
+type AuthRevoke struct {
+	Token string
+}
+
 // IsActive check if there is an auth scheme enabled
 func (a *AuthScheme) IsActive() bool {
 	return len(a.Type) > 0
